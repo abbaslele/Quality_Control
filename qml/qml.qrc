@@ -1,0 +1,9 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+    <qresource prefix="/qml">
+        <file>main.qml</file>
+        <file>ServoControlPanel.qml</file>
+        <file>EncoderDisplay.qml</file>
+        <file>ConnectionPanel.qml</file>
+    </qresource>
+</RCC>

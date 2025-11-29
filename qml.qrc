@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/main.qml</file>
+        <file>qml/ConnectionPanel.qml</file>
+        <file>qml/EncoderDisplay.qml</file>
+        <file>qml/ServoControlPanel.qml</file>
+    </qresource>
+</RCC>
