@@ -4,87 +4,68 @@
 #include <QObject>
 #include <QSerialPort>
 #include <QSerialPortInfo>
-#include <memory>
+#include <QString>
+#include <QStringList>
 #include <QTimer>
 
 /**
- * @class SerialPortManager
- * @brief Manages low-level serial port operations
+ * @brief Manages low-level serial port communication
  *
- * Handles serial port configuration, connection management,
- * and asynchronous I/O operations. Implements SRP by focusing
- * solely on serial communication concerns.
+ * Responsibility: Handle serial port operations including opening,
+ * closing, reading, writing, and port enumeration.
+ * Follows Single Responsibility Principle.
  */
 class SerialPortManager : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(bool isConnected READ isConnected NOTIFY connectionChanged)
+    Q_PROPERTY(QString portName READ portName WRITE setPortName NOTIFY portNameChanged)
+    Q_PROPERTY(int baudRate READ baudRate WRITE setBaudRate NOTIFY baudRateChanged)
 
 public:
-    explicit SerialPortManager(const QString &portName,
-                               QObject *parent = nullptr);
-    ~SerialPortManager();
+    explicit SerialPortManager(QObject *parent = nullptr);
+    ~SerialPortManager() override;
 
-    /**
-     * @brief Configure serial port parameters
-     * @param baudRate Baud rate (default: 19200)
-     * @param dataBits Data bits (default: 8)
-     * @param parity Parity (default: NoParity)
-     * @param stopBits Stop bits (default: OneStop)
-     * @return true if configuration successful
-     */
-    bool configurePort(qint32 baudRate = 19200,
-                       QSerialPort::DataBits dataBits = QSerialPort::Data8,
-                       QSerialPort::Parity parity = QSerialPort::NoParity,
-                       QSerialPort::StopBits stopBits = QSerialPort::OneStop);
+    // Property accessors
+    bool isConnected() const { return m_isConnected; }
+    QString portName() const { return m_portName; }
+    int baudRate() const { return m_baudRate; }
 
-    /**
-     * @brief Open serial port connection
-     * @return true if port opened successfully
-     */
-    bool openPort();
+    void setPortName(const QString &portName);
+    void setBaudRate(int baudRate);
 
-    /**
-     * @brief Close serial port connection
-     */
-    void closePort();
-
-    /**
-     * @brief Check if port is open
-     * @return Connection status
-     */
-    bool isOpen() const;
-
-    /**
-     * @brief Send data asynchronously
-     * @param data Data to transmit
-     * @return true if data queued successfully
-     */
-    bool sendDataAsync(const QByteArray &data);
-
-    /**
-     * @brief Get last occurred error
-     * @return Error string
-     */
-    QString lastError() const;
+    // Invokable methods for QML
+    Q_INVOKABLE QStringList availablePorts() const;
+    Q_INVOKABLE bool openPort();
+    Q_INVOKABLE void closePort();
+    Q_INVOKABLE bool writeData(const QString &data);
+    Q_INVOKABLE void requestRead();
 
 signals:
-    void dataReceived(const QByteArray &data);
     void connectionChanged(bool connected);
-    void errorOccurred(const QString &error);
+    void portNameChanged();
+    void baudRateChanged();
+    void dataReceived(const QString &data);
+    void errorOccurred(const QString &errorMsg);
 
 private slots:
     void handleReadyRead();
     void handleError(QSerialPort::SerialPortError error);
-    void handleConnectionTimeout();
 
 private:
-    std::unique_ptr<QSerialPort> m_serialPort;
-    QString m_portName;
-    QString m_lastError;
-    QTimer m_connectionMonitor;
-    bool m_isConnected;
+    void updateConnectionStatus(bool connected);
 
-    void setupConnectionMonitoring();
+    QSerialPort *m_serialPort;
+    QString m_portName;
+    int m_baudRate;
+    bool m_isConnected;
+    QByteArray m_readBuffer;
+
+    // Serial port configuration constants
+    static constexpr QSerialPort::DataBits DATA_BITS = QSerialPort::Data8;
+    static constexpr QSerialPort::Parity PARITY = QSerialPort::NoParity;
+    static constexpr QSerialPort::StopBits STOP_BITS = QSerialPort::OneStop;
+    static constexpr QSerialPort::FlowControl FLOW_CONTROL = QSerialPort::NoFlowControl;
 };
 
 #endif // SERIALPORTMANAGER_H

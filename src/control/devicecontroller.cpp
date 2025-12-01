@@ -1,150 +1,136 @@
 #include "DeviceController.h"
+#include "../serial/SerialPortManager.h"
 #include <QDebug>
-#include <QTimer>
+#include <cmath>
 
-DeviceController::DeviceController(QObject *parent)
+DeviceController::DeviceController(SerialPortManager *serialPort, QObject *parent)
     : QObject(parent)
-    , m_portManager(new SerialPortManager("", this))
-    , m_state(IDLE)
-    , m_lastCommandedPosition(0)
-    , m_lastPosition(0)
-    , m_lastAngle(0.0f)
+    , m_serialPort(serialPort)
+    , m_currentEncoderAngle(0.0)
+    , m_currentServoPosition(SERVO_ZERO_POSITION)
+    , m_positionError(0.0)
 {
-    connect(m_portManager, &SerialPortManager::dataReceived,
-            this, &DeviceController::onDataReceived);
-    connect(m_portManager, &SerialPortManager::errorOccurred,
-            this, &DeviceController::onError);
-
-    m_stateTimer.setSingleShot(true);
-    connect(&m_stateTimer, &QTimer::timeout,
-            this, [this]() { processStateMachine(); });
-}
-
-DeviceController::~DeviceController()
-{
-    disconnectDevice();
-}
-
-bool DeviceController::isConnected() const
-{
-    return m_portManager->isOpen();
-}
-
-bool DeviceController::connectDevice(const QString &portName)
-{
-    if (m_portManager->isOpen()) {
-        disconnectDevice();
+    if (m_serialPort) {
+        connect(m_serialPort, &SerialPortManager::dataReceived,
+                this, &DeviceController::handleSerialData);
     }
+}
 
-    m_portManager = new SerialPortManager(portName, this);
-    connect(m_portManager, &SerialPortManager::dataReceived,
-            this, &DeviceController::onDataReceived);
-    connect(m_portManager, &SerialPortManager::errorOccurred,
-            this, &DeviceController::onError);
-
-    if (!m_portManager->configurePort()) {
+bool DeviceController::sendServoCommand(int microseconds)
+{
+    if (!m_serialPort) {
+        emit deviceError("Serial port manager not available");
         return false;
     }
 
-    bool success = m_portManager->openPort();
-    if (success) {
-        emit connectionChanged(true);
+    if (microseconds < 900 || microseconds > 2250) {
+        emit deviceError(QString("Invalid servo position: %1 (range: 900-2250)").arg(microseconds));
+        return false;
     }
+
+    QString command = QString("%1%2").arg(SERVO_CMD_PREFIX).arg(microseconds);
+    bool success = m_serialPort->writeData(command);
+
+    if (success) {
+        m_currentServoPosition = microseconds;
+        emit servoPositionChanged(microseconds);
+        emit commandSent(command);
+        qDebug() << "Servo command sent:" << microseconds;
+    }
+
     return success;
 }
 
-void DeviceController::disconnectDevice()
+bool DeviceController::requestEncoderReading()
 {
-    if (m_portManager->isOpen()) {
-        m_portManager->closePort();
-        emit connectionChanged(false);
+    if (!m_serialPort) {
+        emit deviceError("Serial port manager not available");
+        return false;
     }
+
+    bool success = m_serialPort->writeData(ENCODER_READ_CMD);
+    if (success) {
+        emit commandSent(ENCODER_READ_CMD);
+        qDebug() << "Encoder read requested";
+    }
+
+    return success;
 }
 
-void DeviceController::sendPosition(int position)
+bool DeviceController::calibrateEncoder()
 {
-    if (position < 900 || position > 2100) {
-        emit errorOccurred(QString("Position out of range [900-2100]: %1").arg(position));
+    if (!m_serialPort) {
+        emit deviceError("Serial port manager not available");
+        return false;
+    }
+
+    bool success = m_serialPort->writeData(ENCODER_ZERO_CMD);
+    if (success) {
+        emit commandSent(ENCODER_ZERO_CMD);
+        qDebug() << "Encoder calibration command sent";
+    }
+
+    return success;
+}
+
+void DeviceController::setServoToZero()
+{
+    sendServoCommand(SERVO_ZERO_POSITION);
+}
+
+double DeviceController::mapPulseToAngle(int pulse, int startPulse, int endPulse,
+                                         double startAngle, double endAngle) const
+{
+    if (endPulse == startPulse) {
+        return startAngle;
+    }
+
+    double ratio = static_cast<double>(pulse - startPulse) / (endPulse - startPulse);
+    return startAngle + ratio * (endAngle - startAngle);
+}
+
+void DeviceController::handleSerialData(const QString &data)
+{
+    // Check for servo acknowledgment
+    if (data.startsWith("Servo command accepted:")) {
+        emit commandAcknowledged(data);
         return;
     }
 
-    m_lastCommandedPosition = position;
+    // Check for encoder zero confirmation
+    if (data.contains("Encoder is ready and set to Zero position")) {
+        m_currentEncoderAngle = 0.0;
+        emit encoderAngleChanged(0.0);
+        emit commandAcknowledged(data);
+        return;
+    }
 
-    QByteArray command = QString("S%1\n").arg(position).toUtf8();
-    if (m_portManager->sendDataAsync(command)) {
-        m_state = WAITING_SERVO_ACK;
-        m_stateTimer.start(200); // Wait for ACK
+    // Parse encoder angle response
+    parseEncoderResponse(data);
+}
+
+void DeviceController::parseEncoderResponse(const QString &response)
+{
+    bool ok = false;
+    double angle = response.toDouble(&ok);
+
+    if (ok) {
+        // Normalize angle to -180 to +180 range
+        while (angle > 180.0) angle -= 360.0;
+        while (angle < -180.0) angle += 360.0;
+
+        m_currentEncoderAngle = angle;
+        emit encoderAngleChanged(angle);
+        qDebug() << "Encoder angle updated:" << angle;
     } else {
-        emit errorOccurred("Failed to send servo command");
+        qWarning() << "Failed to parse encoder response:" << response;
     }
 }
 
-void DeviceController::calibrate()
+void DeviceController::calculatePositionError(int servoPulse, double encoderAngle)
 {
-    if (!m_portManager->isOpen()) {
-        emit errorOccurred("Device not connected");
-        return;
-    }
-
-    // Send center position
-    sendPosition(1500);
-
-    // After servo moves, zero encoder
-    QTimer::singleShot(1500, [this]() {
-        m_portManager->sendDataAsync("E1\n");
-        emit errorOccurred("Calibration: Encoder zeroed at center");
-    });
-}
-
-void DeviceController::onDataReceived(const QByteArray &data)
-{
-    QString response = QString::fromUtf8(data).trimmed();
-
-    if (response.startsWith("ACK:")) {
-        int pos = response.mid(4).toInt();
-        m_lastPosition = pos;
-        emit positionAcknowledged(pos);
-
-        m_state = WAITING_ENCODER_RESPONSE;
-        m_stateTimer.start(500); // Wait 500ms for servo to settle
-    }
-    else if (response.startsWith("ERR:")) {
-        emit errorOccurred(response);
-        m_state = IDLE;
-    }
-    else {
-        bool ok;
-        float angle = response.toFloat(&ok);
-        if (ok) {
-            m_lastAngle = angle;
-            emit angleReceived(angle);
-        } else {
-            emit errorOccurred(QString("Invalid response: %1").arg(response));
-        }
-        m_state = IDLE;
-    }
-}
-
-void DeviceController::onError(const QString &error)
-{
-    emit errorOccurred(error);
-    m_state = IDLE;
-}
-
-void DeviceController::processStateMachine()
-{
-    switch (m_state) {
-    case WAITING_SERVO_ACK:
-        emit errorOccurred("Timeout waiting for servo ACK");
-        m_state = IDLE;
-        break;
-
-    case WAITING_ENCODER_RESPONSE:
-        m_portManager->sendDataAsync("E0\n");
-        m_stateTimer.start(200);
-        break;
-
-    case IDLE:
-        break;
-    }
+    // This should be called externally with expected angle
+    // Error = Expected - Actual
+    m_positionError = encoderAngle; // Placeholder, will be calculated in ApplicationController
+    emit positionErrorChanged(m_positionError);
 }

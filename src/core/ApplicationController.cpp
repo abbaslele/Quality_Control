@@ -1,207 +1,268 @@
 #include "ApplicationController.h"
-#include <QSerialPortInfo>
+#include "../serial/SerialPortManager.h"
+#include "../control/DeviceController.h"
+#include "../control/PositionSequencer.h"
 #include <QDebug>
-#include <QDateTime>
-#include <QSettings>
 #include <QThread>
 
 ApplicationController::ApplicationController(QObject *parent)
     : QObject(parent)
-    , m_device(new DeviceController(this))
-    , m_sequencer(new PositionSequencer(this))
-    , m_encoderCenterOffset(0.0f)
+    , m_settings(new QSettings("ServoControl", "QualityControl", this))
     , m_isCalibrated(false)
-    , m_currentCommandedPosition(0)
-    , m_currentCommandedAngle(0.0f)
-    , m_currentPosition(0)
-    , m_currentAngle(0.0f)
-    , m_maxError(0.0f)
-    , m_servoFailed(false)
+    , m_startPulse(DEFAULT_START_PULSE)
+    , m_endPulse(DEFAULT_END_PULSE)
+    , m_startAngle(DEFAULT_START_ANGLE)
+    , m_endAngle(DEFAULT_END_ANGLE)
+    , m_steps(DEFAULT_STEPS)
 {
-    // Load calibration
-    QSettings settings;
-    if (settings.contains("encoderCenterOffset")) {
-        m_encoderCenterOffset = settings.value("encoderCenterOffset").toFloat();
-        m_isCalibrated = true;
-        logError(QString("[SYSTEM] Loaded encoder calibration: %1°").arg(m_encoderCenterOffset, 0, 'f', 3));
-    }
-
-    connect(m_device, &DeviceController::connectionChanged,
-            this, &ApplicationController::deviceConnectionChanged);
-    connect(m_device, &DeviceController::positionAcknowledged,
-            this, &ApplicationController::onDevicePositionAck);
-    connect(m_device, &DeviceController::angleReceived,
-            this, &ApplicationController::onDeviceAngleReceived);
-    connect(m_device, &DeviceController::errorOccurred,
-            this, &ApplicationController::onDeviceError);
-    connect(m_sequencer, &PositionSequencer::positionTriggered,
-            this, &ApplicationController::onSequencerPosition);
-    connect(m_sequencer, &PositionSequencer::runningChanged,
-            this, &ApplicationController::sequenceRunningChanged);
+    initializeComponents();
+    connectSignals();
+    loadSettings();
 }
 
 ApplicationController::~ApplicationController()
 {
-    stopSequence();
+    saveSettings();
 }
 
-QStringList ApplicationController::availablePorts() const
+void ApplicationController::initializeComponents()
 {
-    QStringList ports;
-    for (const QSerialPortInfo &info : QSerialPortInfo::availablePorts()) {
-        ports.append(info.portName());
+    m_serialPort = new SerialPortManager(this);
+    m_serialPort->setBaudRate(DEFAULT_BAUD_RATE);
+
+    m_deviceController = new DeviceController(m_serialPort, this);
+    m_positionSequencer = new PositionSequencer(this);
+}
+
+void ApplicationController::connectSignals()
+{
+    // Connect sequencer to device controller
+    connect(m_positionSequencer, &PositionSequencer::nextPosition,
+            this, &ApplicationController::handlePositionCommand);
+
+    // Connect encoder updates
+    connect(m_deviceController, &DeviceController::encoderAngleChanged,
+            this, &ApplicationController::handleEncoderUpdate);
+
+    // Connect sequence completion
+    connect(m_positionSequencer, &PositionSequencer::sequenceCompleted,
+            this, &ApplicationController::handleSequenceComplete);
+
+    // Forward status messages
+    connect(m_deviceController, &DeviceController::deviceError,
+            this, &ApplicationController::statusMessage);
+    connect(m_serialPort, &SerialPortManager::errorOccurred,
+            this, &ApplicationController::statusMessage);
+}
+
+QObject* ApplicationController::serialPort() const
+{
+    return m_serialPort;
+}
+
+QObject* ApplicationController::deviceController() const
+{
+    return m_deviceController;
+}
+
+QObject* ApplicationController::positionSequencer() const
+{
+    return m_positionSequencer;
+}
+
+void ApplicationController::setStartPulse(int pulse)
+{
+    if (m_startPulse != pulse) {
+        m_startPulse = pulse;
+        emit startPulseChanged(pulse);
     }
-    return ports;
 }
 
-void ApplicationController::connectDevice(const QString &portName)
+void ApplicationController::setEndPulse(int pulse)
 {
-    if (m_device->isConnected()) {
-        disconnectDevice();
+    if (m_endPulse != pulse) {
+        m_endPulse = pulse;
+        emit endPulseChanged(pulse);
     }
-    m_device->connectDevice(portName);
 }
 
-void ApplicationController::disconnectDevice()
+void ApplicationController::setStartAngle(double angle)
 {
-    m_device->disconnectDevice();
+    if (qAbs(m_startAngle - angle) > 0.001) {
+        m_startAngle = angle;
+        emit startAngleChanged(angle);
+    }
 }
 
-void ApplicationController::startSequence()
+void ApplicationController::setEndAngle(double angle)
 {
-    if (!m_device->isConnected()) {
-        emit errorOccurred("Device not connected");
+    if (qAbs(m_endAngle - angle) > 0.001) {
+        m_endAngle = angle;
+        emit endAngleChanged(angle);
+    }
+}
+
+void ApplicationController::setSteps(int steps)
+{
+    if (m_steps != steps && steps >= 2) {
+        m_steps = steps;
+        emit stepsChanged(steps);
+    }
+}
+
+void ApplicationController::performCalibration()
+{
+    if (!m_serialPort->isConnected()) {
+        emit statusMessage("Cannot calibrate: Serial port not connected");
         return;
     }
+
+    emit statusMessage("Starting calibration...");
+
+    // Step 1: Set servo to zero position (1500μs = 0°)
+    m_deviceController->setServoToZero();
+
+    // Step 2: Wait briefly, then reset encoder to zero
+    QThread::msleep(500);
+    m_deviceController->calibrateEncoder();
+
+    m_isCalibrated = true;
+    emit calibrationChanged(true);
+    emit statusMessage("Calibration complete");
+
+    qDebug() << "Calibration performed";
+}
+
+void ApplicationController::startTest()
+{
+    if (!m_serialPort->isConnected()) {
+        emit statusMessage("Cannot start test: Serial port not connected");
+        return;
+    }
+
     if (!m_isCalibrated) {
-        emit errorOccurred("Device not calibrated! Click 'Calibrate' first.");
+        emit statusMessage("Please calibrate before running test");
         return;
     }
 
-    resetErrorTracking();
-    m_sequencer->start();
+    m_testResults.clear();
+
+    // Generate position sequence
+    m_positionSequencer->generatePositions(m_startPulse, m_endPulse, m_steps);
+
+    // Configure to run 4 complete cycles (forward + backward = 1 cycle)
+    m_positionSequencer->setMaxLoops(4);
+    m_positionSequencer->setLoopEnabled(true);  // Enable looping
+
+    emit statusMessage("Test started - Running 4 complete cycles");
+    m_positionSequencer->start();
 }
 
-void ApplicationController::stopSequence()
+void ApplicationController::stopTest()
 {
-    m_sequencer->stop();
+    m_positionSequencer->stop();
+    emit statusMessage("Test stopped");
 }
 
-void ApplicationController::calibrateDevice()
+QVector<double> ApplicationController::calculateRealPositions() const
 {
-    if (!m_device->isConnected()) {
-        emit errorOccurred("Device not connected");
-        return;
+    QVector<double> angles;
+    QVector<int> positions = m_positionSequencer->getPositions();
+
+    for (int pulse : positions) {
+        double angle = interpolateAngle(pulse);
+        angles.append(angle);
     }
 
-    logError("[CALIBRATION] Starting...");
-    logError("[CALIBRATION] Moving servo to center (1500μs)...");
-    logError("[CALIBRATION] Wait 2 seconds for stability...");
+    return angles;
+}
 
-    m_device->sendPosition(1500);
+void ApplicationController::saveSettings()
+{
+    m_settings->setValue("startPulse", m_startPulse);
+    m_settings->setValue("endPulse", m_endPulse);
+    m_settings->setValue("startAngle", m_startAngle);
+    m_settings->setValue("endAngle", m_endAngle);
+    m_settings->setValue("steps", m_steps);
+    m_settings->setValue("portName", m_serialPort->portName());
+    m_settings->setValue("interval" , )
+    m_settings->sync();
 
-    QTimer::singleShot(2000, [this]() {
-        m_encoderCenterOffset = m_currentAngle;
-        m_isCalibrated = true;
+    qDebug() << "Settings saved";
+}
 
-        QSettings settings;
-        settings.setValue("encoderCenterOffset", m_encoderCenterOffset);
+void ApplicationController::loadSettings()
+{
+    m_startPulse = m_settings->value("startPulse", DEFAULT_START_PULSE).toInt();
+    m_endPulse = m_settings->value("endPulse", DEFAULT_END_PULSE).toInt();
+    m_startAngle = m_settings->value("startAngle", DEFAULT_START_ANGLE).toDouble();
+    m_endAngle = m_settings->value("endAngle", DEFAULT_END_ANGLE).toDouble();
+    m_steps = m_settings->value("steps", DEFAULT_STEPS).toInt();
 
-        emit isCalibratedChanged(true);
-        logError(QString("[CALIBRATION SUCCESS] Encoder offset: %1°").arg(m_encoderCenterOffset, 0, 'f', 3));
+    QString portName = m_settings->value("portName", "").toString();
+    if (!portName.isEmpty()) {
+        m_serialPort->setPortName(portName);
+    }
+
+    emit startPulseChanged(m_startPulse);
+    emit endPulseChanged(m_endPulse);
+    emit startAngleChanged(m_startAngle);
+    emit endAngleChanged(m_endAngle);
+    emit stepsChanged(m_steps);
+
+    qDebug() << "Settings loaded";
+}
+
+void ApplicationController::handlePositionCommand(int position, int index)
+{
+    // Send servo command
+    m_deviceController->sendServoCommand(position);
+
+    // Wait for servo to settle, then read encoder
+    QTimer::singleShot(800, this, [this, position, index]() {
+        m_deviceController->requestEncoderReading();
+
+        // Store current command position for comparison
+        m_testResults.append(qMakePair(position, 0.0));
     });
 }
 
-void ApplicationController::clearErrorLog()
+void ApplicationController::handleEncoderUpdate(double angle)
 {
-    m_errorLog.clear();
-    emit errorLogChanged(m_errorLog);
-}
+    if (!m_testResults.isEmpty()) {
+        // Update last test result with encoder reading
+        int lastPulse = m_testResults.last().first;
+        m_testResults.last().second = angle;
 
-void ApplicationController::onDevicePositionAck(int position)
-{
-    m_currentPosition = position;
-    emit currentPositionChanged(position);
-}
+        // Calculate expected angle
+        double expectedAngle = interpolateAngle(lastPulse);
+        double error = angle - expectedAngle;
 
-void ApplicationController::onDeviceAngleReceived(float angle)
-{
-    m_currentAngle = angle;
-    emit currentAngleChanged(angle);
 
-    if (m_sequencer->isRunning() && m_currentPosition == m_currentCommandedPosition) {
-        checkError();
+        QString msg = QString("Pulse: %1 | Expected: %2° | Actual: %3° | Error: %4°")
+                          .arg(lastPulse)
+                          .arg(expectedAngle, 0, 'f', 2)
+                          .arg(angle, 0, 'f', 2)
+                          .arg(error, 0, 'f', 2);
+
+        emit testDataPoint(lastPulse, expectedAngle, angle, error);
+
+        emit statusMessage(msg);
     }
 }
 
-void ApplicationController::onSequencerPosition(int position, float angle)
+void ApplicationController::handleSequenceComplete()
 {
-    m_currentCommandedPosition = position;
-    m_currentCommandedAngle = angle;
-    m_device->sendPosition(position);
+    emit statusMessage("Test sequence completed");
+    qDebug() << "Test completed with" << m_testResults.size() << "data points";
 }
 
-void ApplicationController::checkError()
+double ApplicationController::interpolateAngle(int pulse) const
 {
-    if (!m_isCalibrated) return;
-
-    float relativeAngle = m_currentAngle - m_encoderCenterOffset;
-    while (relativeAngle > 180.0f) relativeAngle -= 360.0f;
-    while (relativeAngle < -180.0f) relativeAngle += 360.0f;
-
-    float servoAngle = qBound(-75.0f, relativeAngle, 75.0f);
-    float error = qAbs(m_currentCommandedAngle - servoAngle);
-
-    if (error > m_maxError) {
-        m_maxError = error;
-        emit maxErrorChanged(m_maxError);
-
-        if (error > 1.0f && !m_servoFailed) {
-            m_servoFailed = true;
-            emit servoFailedChanged(true);
-        }
+    if (m_endPulse == m_startPulse) {
+        return m_startAngle;
     }
 
-    QString log = QString("[%1] Pos:%2 Cmd:%3° Enc:%4° Mapped:%5° Error:%6°")
-                      .arg(QDateTime::currentDateTime().toString("hh:mm:ss.zzz"))
-                      .arg(m_currentCommandedPosition, 4)
-                      .arg(QString::number(m_currentCommandedAngle, 'f', 3))
-                      .arg(QString::number(m_currentAngle, 'f', 3))
-                      .arg(QString::number(servoAngle, 'f', 3))
-                      .arg(QString::number(error, 'f', 3));
-
-    logError(log);
-}
-
-void ApplicationController::onDeviceError(const QString &error)
-{
-    emit errorOccurred(error);
-}
-
-void ApplicationController::resetErrorTracking()
-{
-    m_maxError = 0.0f;
-    m_servoFailed = false;
-    m_errorLog.clear();
-    emit maxErrorChanged(m_maxError);
-    emit servoFailedChanged(false);
-    emit errorLogChanged(m_errorLog);
-}
-
-void ApplicationController::logError(const QString &message)
-{
-    m_errorLog.append(message + "\n");
-    emit errorLogChanged(m_errorLog);
-    qDebug() << message;
-}
-
-// MISSING IMPLEMENTATIONS (add these):
-bool ApplicationController::deviceConnected() const
-{
-    return m_device->isConnected();
-}
-
-bool ApplicationController::sequenceRunning() const
-{
-    return m_sequencer->isRunning();
+    double ratio = static_cast<double>(pulse - m_startPulse) / (m_endPulse - m_startPulse);
+    return m_startAngle + ratio * (m_endAngle - m_startAngle);
 }

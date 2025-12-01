@@ -1,21 +1,16 @@
 #include "SerialPortManager.h"
 #include <QDebug>
 
-static constexpr int CONNECTION_TIMEOUT_MS = 5000;
-static constexpr int CONNECTION_CHECK_INTERVAL_MS = 1000;
-
-SerialPortManager::SerialPortManager(const QString &portName, QObject *parent)
+SerialPortManager::SerialPortManager(QObject *parent)
     : QObject(parent)
-    , m_serialPort(std::make_unique<QSerialPort>())
-    , m_portName(portName)
+    , m_serialPort(new QSerialPort(this))
+    , m_portName("")
+    , m_baudRate(19200)
     , m_isConnected(false)
 {
-    m_serialPort->setPortName(portName);
-    setupConnectionMonitoring();
-
-    connect(m_serialPort.get(), &QSerialPort::readyRead,
+    connect(m_serialPort, &QSerialPort::readyRead,
             this, &SerialPortManager::handleReadyRead);
-    connect(m_serialPort.get(), &QSerialPort::errorOccurred,
+    connect(m_serialPort, &QSerialPort::errorOccurred,
             this, &SerialPortManager::handleError);
 }
 
@@ -24,117 +19,138 @@ SerialPortManager::~SerialPortManager()
     closePort();
 }
 
-bool SerialPortManager::configurePort(qint32 baudRate,
-                                      QSerialPort::DataBits dataBits,
-                                      QSerialPort::Parity parity,
-                                      QSerialPort::StopBits stopBits)
+void SerialPortManager::setPortName(const QString &portName)
 {
-    if (m_serialPort->isOpen()) {
-        m_lastError = QStringLiteral("Cannot configure open port");
-        emit errorOccurred(m_lastError);
-        return false;
+    if (m_portName != portName) {
+        m_portName = portName;
+        emit portNameChanged();
     }
+}
 
-    m_serialPort->setBaudRate(baudRate);
-    m_serialPort->setDataBits(dataBits);
-    m_serialPort->setParity(parity);
-    m_serialPort->setStopBits(stopBits);
-    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+void SerialPortManager::setBaudRate(int baudRate)
+{
+    if (m_baudRate != baudRate) {
+        m_baudRate = baudRate;
+        emit baudRateChanged();
+    }
+}
 
-    return true;
+QStringList SerialPortManager::availablePorts() const
+{
+    QStringList portNames;
+    const auto ports = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : ports) {
+        portNames << info.portName();
+    }
+    return portNames;
 }
 
 bool SerialPortManager::openPort()
 {
-    if (m_serialPort->isOpen()) {
-        return true;
+    if (m_isConnected) {
+        closePort();
     }
 
+    if (m_portName.isEmpty()) {
+        emit errorOccurred("Port name not set");
+        return false;
+    }
+
+    m_serialPort->setPortName(m_portName);
+    m_serialPort->setBaudRate(m_baudRate);
+    m_serialPort->setDataBits(DATA_BITS);
+    m_serialPort->setParity(PARITY);
+    m_serialPort->setStopBits(STOP_BITS);
+    m_serialPort->setFlowControl(FLOW_CONTROL);
+
     if (m_serialPort->open(QIODevice::ReadWrite)) {
-        m_isConnected = true;
-        m_connectionMonitor.start(CONNECTION_CHECK_INTERVAL_MS);
-        emit connectionChanged(true);
-        qDebug() << "Serial port opened:" << m_portName;
+        updateConnectionStatus(true);
+        qDebug() << "Serial port opened:" << m_portName << "at" << m_baudRate;
         return true;
     } else {
-        m_lastError = m_serialPort->errorString();
-        emit errorOccurred(m_lastError);
+        QString errorMsg = QString("Failed to open port %1: %2")
+        .arg(m_portName, m_serialPort->errorString());
+        emit errorOccurred(errorMsg);
+        qWarning() << errorMsg;
         return false;
     }
 }
 
 void SerialPortManager::closePort()
 {
-    m_connectionMonitor.stop();
     if (m_serialPort->isOpen()) {
         m_serialPort->close();
-        m_isConnected = false;
-        emit connectionChanged(false);
+        updateConnectionStatus(false);
         qDebug() << "Serial port closed:" << m_portName;
     }
 }
 
-bool SerialPortManager::isOpen() const
+bool SerialPortManager::writeData(const QString &data)
 {
-    return m_serialPort->isOpen();
-}
-
-bool SerialPortManager::sendDataAsync(const QByteArray &data)
-{
-    if (!m_serialPort->isOpen()) {
-        m_lastError = QStringLiteral("Port not open");
-        emit errorOccurred(m_lastError);
+    if (!m_isConnected) {
+        emit errorOccurred("Port not connected");
         return false;
     }
 
-    qint64 bytesWritten = m_serialPort->write(data);
+    QString dataWithNewline = data + "\n";
+    qint64 bytesWritten = m_serialPort->write(dataWithNewline.toUtf8());
+
     if (bytesWritten == -1) {
-        m_lastError = m_serialPort->errorString();
-        emit errorOccurred(m_lastError);
+        emit errorOccurred("Failed to write data to port");
         return false;
     }
 
-    return m_serialPort->flush();
+    m_serialPort->flush();
+    qDebug() << "Data written:" << data;
+    return true;
 }
 
-QString SerialPortManager::lastError() const
+void SerialPortManager::requestRead()
 {
-    return m_lastError;
+    // Trigger read if data is available
+    if (m_serialPort->bytesAvailable() > 0) {
+        handleReadyRead();
+    }
 }
 
 void SerialPortManager::handleReadyRead()
 {
-    const QByteArray data = m_serialPort->readAll();
-    if (!data.isEmpty()) {
-        emit dataReceived(data);
+    m_readBuffer.append(m_serialPort->readAll());
+
+    // Process complete lines (terminated with \n)
+    while (m_readBuffer.contains('\n')) {
+        int newlineIndex = m_readBuffer.indexOf('\n');
+        QByteArray line = m_readBuffer.left(newlineIndex);
+        m_readBuffer.remove(0, newlineIndex + 1);
+
+        QString receivedData = QString::fromUtf8(line).trimmed();
+        if (!receivedData.isEmpty()) {
+            qDebug() << "Data received:" << receivedData;
+            emit dataReceived(receivedData);
+        }
     }
 }
 
 void SerialPortManager::handleError(QSerialPort::SerialPortError error)
 {
-    if (error != QSerialPort::NoError) {
-        m_lastError = m_serialPort->errorString();
-        emit errorOccurred(m_lastError);
+    if (error == QSerialPort::NoError) {
+        return;
+    }
 
-        if (error == QSerialPort::ResourceError) {
-            closePort();
-        }
+    QString errorMsg = QString("Serial port error: %1").arg(m_serialPort->errorString());
+    emit errorOccurred(errorMsg);
+    qWarning() << errorMsg;
+
+    // Close port on critical errors
+    if (error == QSerialPort::ResourceError || error == QSerialPort::PermissionError) {
+        closePort();
     }
 }
 
-void SerialPortManager::setupConnectionMonitoring()
+void SerialPortManager::updateConnectionStatus(bool connected)
 {
-    connect(&m_connectionMonitor, &QTimer::timeout,
-            this, [this]() {
-                // Simple keepalive - check if port is still responsive
-                if (m_serialPort->isOpen()) {
-                    m_serialPort->clearError();
-                }
-            });
-    m_connectionMonitor.setInterval(CONNECTION_CHECK_INTERVAL_MS);
-}
-
-void SerialPortManager::handleConnectionTimeout()
-{
-    // Implement timeout logic if needed
+    if (m_isConnected != connected) {
+        m_isConnected = connected;
+        emit connectionChanged(connected);
+    }
 }

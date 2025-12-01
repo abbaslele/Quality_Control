@@ -1,127 +1,76 @@
 #include "PositionSequencer.h"
 #include <QDebug>
-#include <QtMath>
-
-static constexpr int DEFAULT_INTERVAL_MS = 1000;
 
 PositionSequencer::PositionSequencer(QObject *parent)
     : QObject(parent)
+    , m_sequenceTimer(new QTimer(this))
     , m_currentIndex(0)
     , m_isRunning(false)
-    , m_isForwardDirection(true)
-    , m_startPosition(900)
-    , m_stopPosition(2100)
-    , m_stepCount(10)
-    , m_startAngle(-75.0f)
-    , m_stopAngle(75.0f)
-    , m_useAngleMapping(false)
+    , m_loopEnabled(false)
+    , m_isForward(true)
+    , m_intervalMs(DEFAULT_INTERVAL_MS)
+    , m_maxLoops(DEFAULT_MAX_LOOPS)
+    , m_currentLoop(0)
 {
-    m_sequenceTimer.setInterval(DEFAULT_INTERVAL_MS);
-    connect(&m_sequenceTimer, &QTimer::timeout,
-            this, &PositionSequencer::processNextPosition);
-
-    // Calculate initial positions
-    calculatePositions();
+    m_sequenceTimer->setInterval(m_intervalMs);
+    connect(m_sequenceTimer, &QTimer::timeout,
+            this, &PositionSequencer::advanceSequence);
 }
 
-PositionSequencer::~PositionSequencer()
+void PositionSequencer::setLoopEnabled(bool enabled)
 {
-    stop();
-}
-
-void PositionSequencer::setStartPosition(int position)
-{
-    if (m_startPosition != position) {
-        m_startPosition = position;
-        emit startPositionChanged(m_startPosition);
-        calculatePositions();
+    if (m_loopEnabled != enabled) {
+        m_loopEnabled = enabled;
+        emit loopEnabledChanged(enabled);
     }
 }
 
-void PositionSequencer::setStopPosition(int position)
+void PositionSequencer::setIntervalMs(int ms)
 {
-    if (m_stopPosition != position) {
-        m_stopPosition = position;
-        emit stopPositionChanged(m_stopPosition);
-        calculatePositions();
+    if (ms < 100) ms = 100; // Minimum 100ms interval
+
+    if (m_intervalMs != ms) {
+        m_intervalMs = ms;
+        m_sequenceTimer->setInterval(ms);
+        emit intervalMsChanged(ms);
     }
 }
 
-void PositionSequencer::setStepCount(int count)
+void PositionSequencer::setPositions(const QVector<int> &positions)
 {
-    if (count < 2) count = 2; // Minimum 2 steps (start and stop)
-    if (m_stepCount != count) {
-        m_stepCount = count;
-        emit stepCountChanged(m_stepCount);
-        calculatePositions();
+    m_positions = positions;
+    emit totalStepsChanged(m_positions.size());
+    qDebug() << "Positions set:" << positions.size() << "steps";
+}
+
+void PositionSequencer::setMaxLoops(int loops)
+{
+    if (loops < 1) loops = 1;
+
+    if (m_maxLoops != loops) {
+        m_maxLoops = loops;
+        emit maxLoopsChanged(loops);
     }
 }
 
-void PositionSequencer::setStartAngle(float angle)
+void PositionSequencer::generatePositions(int startPulse, int endPulse, int steps)
 {
-    if (m_startAngle != angle) {
-        m_startAngle = angle;
-        emit startAngleChanged(m_startAngle);
-        if (m_useAngleMapping) calculatePositions();
-    }
-}
+    m_positions.clear();
 
-void PositionSequencer::setStopAngle(float angle)
-{
-    if (m_stopAngle != angle) {
-        m_stopAngle = angle;
-        emit stopAngleChanged(m_stopAngle);
-        if (m_useAngleMapping) calculatePositions();
-    }
-}
-
-void PositionSequencer::setUseAngleMapping(bool use)
-{
-    if (m_useAngleMapping != use) {
-        m_useAngleMapping = use;
-        emit useAngleMappingChanged(m_useAngleMapping);
-        calculatePositions();
-    }
-}
-
-float PositionSequencer::positionToAngle(int position) const
-{
-    if (m_startPosition == m_stopPosition) return m_startAngle;
-
-    float ratio = float(position - m_startPosition) / float(m_stopPosition - m_startPosition);
-    return m_startAngle + ratio * (m_stopAngle - m_startAngle);
-}
-
-int PositionSequencer::angleToPosition(float angle) const
-{
-    if (m_startAngle == m_stopAngle) return m_startPosition;
-
-    float ratio = (angle - m_startAngle) / (m_stopAngle - m_startAngle);
-    return m_startPosition + qRound(ratio * (m_stopPosition - m_startPosition));
-}
-
-void PositionSequencer::calculatePositions()
-{
-    QVector<int> newPositions;
-
-    if (m_useAngleMapping) {
-        // Calculate based on equal angle increments
-        float angleStep = (m_stopAngle - m_startAngle) / (m_stepCount - 1);
-        for (int i = 0; i < m_stepCount; ++i) {
-            float angle = m_startAngle + i * angleStep;
-            newPositions.append(angleToPosition(angle));
-        }
-    } else {
-        // Calculate based on equal pulse increments
-        int pulseStep = qRound(float(m_stopPosition - m_startPosition) / (m_stepCount - 1));
-        for (int i = 0; i < m_stepCount; ++i) {
-            newPositions.append(m_startPosition + i * pulseStep);
-        }
+    if (steps < 2) {
+        qWarning() << "Steps must be at least 2";
+        return;
     }
 
-    m_positions = newPositions;
-    emit positionsChanged(m_positions);
-    qDebug() << "Calculated positions:" << m_positions;
+    double stepSize = static_cast<double>(endPulse - startPulse) / (steps - 1);
+
+    for (int i = 0; i < steps; ++i) {
+        int pulse = qRound(startPulse + i * stepSize);
+        m_positions.append(pulse);
+    }
+
+    emit totalStepsChanged(m_positions.size());
+    qDebug() << "Generated positions:" << m_positions;
 }
 
 void PositionSequencer::start()
@@ -131,69 +80,110 @@ void PositionSequencer::start()
         return;
     }
 
-    m_isRunning = true;
     m_currentIndex = 0;
-    m_isForwardDirection = true;
-    emit runningChanged(m_isRunning);
-    emit indexChanged(m_currentIndex);
+    m_isForward = true;
+    m_currentLoop = 0;  // Reset loop counter
+    updateRunningState(true);
 
-    qDebug() << "Position sequencer started with" << m_positions.size() << "positions";
+    emit currentLoopChanged(m_currentLoop);
 
-    // Trigger first position immediately
-    processNextPosition();
+    // Emit first position immediately
+    emit nextPosition(m_positions[m_currentIndex], m_currentIndex);
+    emit currentIndexChanged(m_currentIndex);
+
+    m_sequenceTimer->start();
+    qDebug() << "Sequence started - will run" << m_maxLoops << "times";
 }
 
 void PositionSequencer::stop()
 {
+    m_sequenceTimer->stop();
+    updateRunningState(false);
+    qDebug() << "Sequence stopped";
+}
+
+void PositionSequencer::pause()
+{
     if (m_isRunning) {
-        m_isRunning = false;
-        m_sequenceTimer.stop();
-        emit runningChanged(m_isRunning);
-        qDebug() << "Position sequencer stopped";
+        m_sequenceTimer->stop();
+        updateRunningState(false);
+        qDebug() << "Sequence paused";
     }
 }
 
-void PositionSequencer::processNextPosition()
+void PositionSequencer::reset()
 {
-    if (!m_isRunning || m_positions.isEmpty()) {
-        return;
+    stop();
+    m_currentIndex = 0;
+    m_isForward = true;
+    m_currentLoop = 0;
+    emit currentIndexChanged(m_currentIndex);
+    emit currentLoopChanged(m_currentLoop);
+    qDebug() << "Sequence reset";
+}
+
+int PositionSequencer::getCurrentPosition() const
+{
+    if (m_currentIndex >= 0 && m_currentIndex < m_positions.size()) {
+        return m_positions[m_currentIndex];
     }
-
-    int currentPosition = m_positions[m_currentIndex];
-    float currentAngle = positionToAngle(currentPosition);
-
-    emit positionTriggered(currentPosition, currentAngle);
-
-    // Wait 1 second total: 500ms for servo move + 500ms for encoder read
-    if (m_isRunning) {
-        m_sequenceTimer.start(1000);
-    }
-
-    advanceSequence();
+    return 0;
 }
 
 void PositionSequencer::advanceSequence()
 {
-    if (m_isForwardDirection) {
+    if (m_positions.isEmpty()) {
+        stop();
+        return;
+    }
+
+    // Move to next position
+    if (m_isForward) {
         m_currentIndex++;
         if (m_currentIndex >= m_positions.size()) {
-            m_currentIndex = qMax(0, m_positions.size() - 2);
-            m_isForwardDirection = false;
-
-            if (m_currentIndex < 0) {
-                stop();
-                emit sequenceCompleted();
-                return;
-            }
+            // Reached end, reverse direction
+            m_isForward = false;
+            m_currentIndex = m_positions.size() - 2;
         }
     } else {
         m_currentIndex--;
         if (m_currentIndex < 0) {
-            emit sequenceCompleted();
-            m_currentIndex = 0;
-            m_isForwardDirection = true;
+            // Completed one full cycle (forward + backward)
+            m_currentLoop++;
+            emit currentLoopChanged(m_currentLoop);
+
+            qDebug() << "Completed loop" << m_currentLoop << "of" << m_maxLoops;
+
+            // Check if we should continue
+            if (m_currentLoop >= m_maxLoops) {
+                // Finished all loops
+                emit sequenceCompleted();
+                stop();
+                qDebug() << "All" << m_maxLoops << "loops completed";
+                return;
+            }
+
+            // Start next loop
+            if (m_loopEnabled) {
+                m_isForward = true;
+                m_currentIndex = 0;
+            } else {
+                // Stop if looping not enabled (respect maxLoops setting)
+                emit sequenceCompleted();
+                stop();
+                return;
+            }
         }
     }
 
-    emit indexChanged(m_currentIndex);
+    emit currentIndexChanged(m_currentIndex);
+    emit nextPosition(m_positions[m_currentIndex], m_currentIndex);
+}
+
+void PositionSequencer::updateRunningState(bool running)
+{
+    if (m_isRunning != running) {
+        m_isRunning = running;
+        emit runningStateChanged(running);
+    }
 }

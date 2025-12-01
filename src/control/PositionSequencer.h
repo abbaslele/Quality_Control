@@ -6,88 +6,81 @@
 #include <QVector>
 
 /**
- * @class PositionSequencer
- * @brief Manages servo test position sequence with dynamic calculation
+ * @brief Manages test sequence execution and timing
+ *
+ * Responsibility: Execute position sequences with configurable timing,
+ * handle forward/backward motion, and loop control.
+ * Follows Single Responsibility and Open/Closed Principles.
  */
 class PositionSequencer : public QObject
 {
     Q_OBJECT
-    Q_PROPERTY(QVector<int> positions READ positions NOTIFY positionsChanged)
-    Q_PROPERTY(int currentIndex READ currentIndex NOTIFY indexChanged)
-    Q_PROPERTY(bool isRunning READ isRunning NOTIFY runningChanged)
-    Q_PROPERTY(int startPosition READ startPosition WRITE setStartPosition NOTIFY startPositionChanged)
-    Q_PROPERTY(int stopPosition READ stopPosition WRITE setStopPosition NOTIFY stopPositionChanged)
-    Q_PROPERTY(int stepCount READ stepCount WRITE setStepCount NOTIFY stepCountChanged)
-    Q_PROPERTY(float startAngle READ startAngle WRITE setStartAngle NOTIFY startAngleChanged)
-    Q_PROPERTY(float stopAngle READ stopAngle WRITE setStopAngle NOTIFY stopAngleChanged)
-    Q_PROPERTY(bool useAngleMapping READ useAngleMapping WRITE setUseAngleMapping NOTIFY useAngleMappingChanged)
+    Q_PROPERTY(bool isRunning READ isRunning NOTIFY runningStateChanged)
+    Q_PROPERTY(int currentIndex READ currentIndex NOTIFY currentIndexChanged)
+    Q_PROPERTY(bool loopEnabled READ loopEnabled WRITE setLoopEnabled NOTIFY loopEnabledChanged)
+    Q_PROPERTY(int intervalMs READ intervalMs WRITE setIntervalMs NOTIFY intervalMsChanged)
+    Q_PROPERTY(int totalSteps READ totalSteps NOTIFY totalStepsChanged)
+    Q_PROPERTY(int maxLoops READ maxLoops WRITE setMaxLoops NOTIFY maxLoopsChanged)
+    Q_PROPERTY(int currentLoop READ currentLoop NOTIFY currentLoopChanged)
 
 public:
     explicit PositionSequencer(QObject *parent = nullptr);
-    ~PositionSequencer();
 
-    QVector<int> positions() const { return m_positions; }
-    int currentIndex() const { return m_currentIndex; }
+    // Property accessors
     bool isRunning() const { return m_isRunning; }
+    int currentIndex() const { return m_currentIndex; }
+    bool loopEnabled() const { return m_loopEnabled; }
+    int intervalMs() const { return m_intervalMs; }
+    int totalSteps() const { return m_positions.size(); }
 
-    // Position properties
-    int startPosition() const { return m_startPosition; }
-    void setStartPosition(int position);
-    int stopPosition() const { return m_stopPosition; }
-    void setStopPosition(int position);
-    int stepCount() const { return m_stepCount; }
-    void setStepCount(int count);
+    void setLoopEnabled(bool enabled);
+    void setIntervalMs(int ms);
 
-    // Angle properties
-    float startAngle() const { return m_startAngle; }
-    void setStartAngle(float angle);
-    float stopAngle() const { return m_stopAngle; }
-    void setStopAngle(float angle);
-    bool useAngleMapping() const { return m_useAngleMapping; }
-    void setUseAngleMapping(bool use);
+    int maxLoops() const { return m_maxLoops; }
+    int currentLoop() const { return m_currentLoop; }
+    void setMaxLoops(int loops);
 
-    // Conversion methods
-    Q_INVOKABLE float positionToAngle(int position) const;
-    Q_INVOKABLE int angleToPosition(float angle) const;
+    // Sequence configuration
+    Q_INVOKABLE void setPositions(const QVector<int> &positions);
+    Q_INVOKABLE void generatePositions(int startPulse, int endPulse, int steps);
+    Q_INVOKABLE void start();
+    Q_INVOKABLE void stop();
+    Q_INVOKABLE void pause();
+    Q_INVOKABLE void reset();
+
+    // Accessors
+    Q_INVOKABLE QVector<int> getPositions() const { return m_positions; }
+    Q_INVOKABLE int getCurrentPosition() const;
 
 signals:
-    void positionTriggered(int position, float angle);
-    void positionSettled(int position, float angle); // <-- ADD THIS SIGNAL
+    void runningStateChanged(bool running);
+    void currentIndexChanged(int index);
+    void loopEnabledChanged(bool enabled);
+    void intervalMsChanged(int ms);
+    void totalStepsChanged(int total);
+    void nextPosition(int position, int index);
     void sequenceCompleted();
-    void positionsChanged(const QVector<int> &positions);
-    void indexChanged(int index);
-    void runningChanged(bool running);
-    void startPositionChanged(int position);
-    void stopPositionChanged(int position);
-    void stepCountChanged(int count);
-    void startAngleChanged(float angle);
-    void stopAngleChanged(float angle);
-    void useAngleMappingChanged(bool use);
-
-public slots:
-    void start();
-    void stop();
-    void calculatePositions();
+    void maxLoopsChanged(int loops);
+    void currentLoopChanged(int loop);
 
 private slots:
-    void processNextPosition();
+    void advanceSequence();
 
 private:
-    QTimer m_sequenceTimer;
+    void updateRunningState(bool running);
+
+    QTimer *m_sequenceTimer;
     QVector<int> m_positions;
     int m_currentIndex;
     bool m_isRunning;
-    bool m_isForwardDirection;
+    bool m_loopEnabled;
+    bool m_isForward;
+    int m_intervalMs;
+    int m_maxLoops;
+    int m_currentLoop;
 
-    // Configuration
-    int m_startPosition;
-    int m_stopPosition;
-    int m_stepCount;
-    float m_startAngle;
-    float m_stopAngle;
-    bool m_useAngleMapping;
-
-    void advanceSequence();
+    static constexpr int DEFAULT_INTERVAL_MS = 1200;
+    static constexpr int DEFAULT_MAX_LOOPS = 4;
 };
 
 #endif // POSITIONSEQUENCER_H
