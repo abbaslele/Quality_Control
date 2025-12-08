@@ -10,6 +10,7 @@ ApplicationController::ApplicationController(QObject *parent)
     , m_settings(new QSettings("ServoControl", "QualityControl", this))
     , m_isCalibrated(false)
     , m_startPulse(DEFAULT_START_PULSE)
+    , m_interval(DEFAULT_INTERVAL)
     , m_endPulse(DEFAULT_END_PULSE)
     , m_startAngle(DEFAULT_START_ANGLE)
     , m_endAngle(DEFAULT_END_ANGLE)
@@ -120,7 +121,7 @@ void ApplicationController::performCalibration()
     emit statusMessage("Starting calibration...");
 
     // Step 1: Set servo to zero position (1500μs = 0°)
-    m_deviceController->setServoToZero();
+    m_deviceController->  setServoToZero();
 
     // Step 2: Wait briefly, then reset encoder to zero
     QThread::msleep(500);
@@ -185,7 +186,7 @@ void ApplicationController::saveSettings()
     m_settings->setValue("endAngle", m_endAngle);
     m_settings->setValue("steps", m_steps);
     m_settings->setValue("portName", m_serialPort->portName());
-    m_settings->setValue("interval" , )
+    m_settings->setValue("interval" , m_positionSequencer->intervalMs());
     m_settings->sync();
 
     qDebug() << "Settings saved";
@@ -198,7 +199,7 @@ void ApplicationController::loadSettings()
     m_startAngle = m_settings->value("startAngle", DEFAULT_START_ANGLE).toDouble();
     m_endAngle = m_settings->value("endAngle", DEFAULT_END_ANGLE).toDouble();
     m_steps = m_settings->value("steps", DEFAULT_STEPS).toInt();
-
+    m_positionSequencer->setIntervalMs(m_settings->value("interval", DEFAULT_STEPS).toInt());
     QString portName = m_settings->value("portName", "").toString();
     if (!portName.isEmpty()) {
         m_serialPort->setPortName(portName);
