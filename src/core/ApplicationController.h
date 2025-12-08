@@ -99,7 +99,7 @@ private:
     static constexpr double DEFAULT_START_ANGLE = -60.0;
     static constexpr double DEFAULT_END_ANGLE = 60.0;
     static constexpr int DEFAULT_STEPS = 9;
-    static constexpr int DEFAULT_INTERVAL = 1400;
+    static constexpr int DEFAULT_INTERVAL = 1500;
     static constexpr int DEFAULT_BAUD_RATE = 19200;
 };
 
