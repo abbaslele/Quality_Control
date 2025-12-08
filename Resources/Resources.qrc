@@ -63,5 +63,6 @@
         <file>Fonts/AlanSans-VariableFont_wght.ttf</file>
         <file>Icons/Export_Icon_F_E.svg</file>
         <file>Icons/QualityControl.ico</file>
+        <file>Images/TavanLogo.png</file>
     </qresource>
 </RCC>
