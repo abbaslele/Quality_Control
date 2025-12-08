@@ -4,5 +4,7 @@
         <file>qml/ConnectionPanel.qml</file>
         <file>qml/EncoderDisplay.qml</file>
         <file>qml/ServoControlPanel.qml</file>
+        <file>qml/ApplicationTheme.qml</file>
+        <file>qml/Home.qml</file>
     </qresource>
 </RCC>

@@ -2,6 +2,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QIcon>
+#include <QQuickWindow>
 
 #include "src/core/ApplicationController.h"
 #include "src/serial/SerialPortManager.h"
@@ -13,9 +14,11 @@ int main(int argc, char *argv[])
     QGuiApplication app(argc, argv);
 
     // Set application metadata
-    app.setOrganizationName("ServoControl");
-    app.setOrganizationDomain("servo-control.local");
+    app.setOrganizationName("TavanAfarin");
+    app.setOrganizationDomain("TavanAfarin.local");
     app.setApplicationName("Quality Control");
+    app.setApplicationVersion("1.0.1");
+    // app.setWindowIcon(QIcon("qrc:/Resources/Icons/QualityControl.ico"));
 
     // Register QML types
     qmlRegisterType<SerialPortManager>("ServoControl", 1, 0, "SerialPortManager");
@@ -44,6 +47,12 @@ int main(int argc, char *argv[])
 
     if (engine.rootObjects().isEmpty())
         return -1;
+
+
+    auto rootWindow = qobject_cast<QQuickWindow*>(engine.rootObjects().constFirst());
+    if (rootWindow) {
+        rootWindow->setIcon(QIcon("qrc:/Resources/Icons/QualityControl.ico"));
+    }
 
     return app.exec();
 }

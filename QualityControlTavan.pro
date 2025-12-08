@@ -30,9 +30,13 @@ HEADERS += \
     src/core/ApplicationController.h
 
 # QML files
-RESOURCES += qml.qrc
+RESOURCES += qml.qrc \
+    Resources/Resources.qrc
 
 # Default rules for deployment
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+
+RC_ICONS +=  "Resources/Icons/QualityControl.ico"

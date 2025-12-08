@@ -1,0 +1,67 @@
+<RCC>
+    <qresource prefix="/Resources">
+        <file>Images/Login_Page_Background.png</file>
+        <file>Icons/Abandon_Icon_F_E.svg</file>
+        <file>Icons/Angle_Icon_O_E.svg</file>
+        <file>Icons/Back_to_Begining_Icon_F_E.svg</file>
+        <file>Icons/Caution_Icon_F_E.svg</file>
+        <file>Icons/Close_Icon_O_E.svg</file>
+        <file>Icons/Connected_Icon_F_E.svg</file>
+        <file>Icons/Decrease_Speed_Icon_F_E.svg</file>
+        <file>Icons/Destruction_Icon_F_E.svg</file>
+        <file>Icons/Direction_Icon_F_E.svg</file>
+        <file>Icons/Disonnected_Icon_F_E.svg</file>
+        <file>Icons/Distance_Icon_F_E.svg</file>
+        <file>Icons/Down_Arrow_Icon_F_E.svg</file>
+        <file>Icons/Exit_Icon_F_E.svg</file>
+        <file>Icons/Filter_Icon_F_E.svg</file>
+        <file>Icons/Icon_Icon_F_E.svg</file>
+        <file>Icons/Increase_Speed_Icon_F_E.svg</file>
+        <file>Icons/Joystick_Icon_F_E.svg</file>
+        <file>Icons/Left_Arrow_Icon_F_E.svg</file>
+        <file>Icons/Left_Camera_Icon_F_E.svg</file>
+        <file>Icons/Location_Icon_F_E.svg</file>
+        <file>Icons/Logs_Icon_F_E.svg</file>
+        <file>Icons/On&amp;Off_Icon_F_E.svg</file>
+        <file>Icons/Pause_Icon_F_E.svg</file>
+        <file>Icons/Play_Icon_F_E.svg</file>
+        <file>Icons/Reset_Icon_F_E.svg</file>
+        <file>Icons/Restore_Icon_F_E.svg</file>
+        <file>Icons/Right_Arrow_Icon_F_E.svg</file>
+        <file>Icons/Right_Camera_Icon_F_E.svg</file>
+        <file>Icons/Search_Icon_O_E.svg</file>
+        <file>Icons/Settings_Icon_F_E.svg</file>
+        <file>Icons/Skip_to_End_Icon_F_E.svg</file>
+        <file>Icons/Sort_Icon_F_E.svg</file>
+        <file>Icons/Start_Record_Icon_F_E.svg</file>
+        <file>Icons/Stop_Record_Icon_F_E.svg</file>
+        <file>Icons/Target_Icon_O_E.svg</file>
+        <file>Icons/Thermometer_Icon_F_E.svg</file>
+        <file>Icons/Threat_Icon_F_E 1.svg</file>
+        <file>Icons/Time_Icon_F_E.svg</file>
+        <file>Icons/Type_Icon_F_E.svg</file>
+        <file>Icons/Up_Arrow_Icon_F_E.svg</file>
+        <file>Icons/Zoom_In_Icon_F_E.svg</file>
+        <file>Icons/Zoom_Out_Icon_F_E.svg</file>
+        <file>Icons/Thaaqeb_Typography.svg</file>
+        <file>Icons/Thaaqeb_Typography_4.ico</file>
+        <file>Icons/Unknown_Icon_F_E.svg</file>
+        <file>Icons/Quadcopter_Icon_F_E.svg</file>
+        <file>Images/Ayeh.png</file>
+        <file>Icons/Safety_Icon_F_E.svg</file>
+        <file>Icons/Video_Icon_F_E 1.svg</file>
+        <file>Images/map.png</file>
+        <file>Icons/System_Location_Icon_F_E.svg</file>
+        <file>Icons/ApplicationLogo.svg</file>
+        <file>Fonts/AlanSans-Black.ttf</file>
+        <file>Fonts/AlanSans-Bold.ttf</file>
+        <file>Fonts/AlanSans-ExtraBold.ttf</file>
+        <file>Fonts/AlanSans-Light.ttf</file>
+        <file>Fonts/AlanSans-Medium.ttf</file>
+        <file>Fonts/AlanSans-Regular.ttf</file>
+        <file>Fonts/AlanSans-SemiBold.ttf</file>
+        <file>Fonts/AlanSans-VariableFont_wght.ttf</file>
+        <file>Icons/Export_Icon_F_E.svg</file>
+        <file>Icons/QualityControl.ico</file>
+    </qresource>
+</RCC>
