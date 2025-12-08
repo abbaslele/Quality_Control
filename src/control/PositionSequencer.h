@@ -79,7 +79,7 @@ private:
     int m_maxLoops;
     int m_currentLoop;
 
-    static constexpr int DEFAULT_INTERVAL_MS = 1200;
+    static constexpr int DEFAULT_INTERVAL_MS = 1400;
     static constexpr int DEFAULT_MAX_LOOPS = 4;
 };
 

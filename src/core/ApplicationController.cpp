@@ -199,7 +199,7 @@ void ApplicationController::loadSettings()
     m_startAngle = m_settings->value("startAngle", DEFAULT_START_ANGLE).toDouble();
     m_endAngle = m_settings->value("endAngle", DEFAULT_END_ANGLE).toDouble();
     m_steps = m_settings->value("steps", DEFAULT_STEPS).toInt();
-    m_positionSequencer->setIntervalMs(m_settings->value("interval", DEFAULT_STEPS).toInt());
+    m_positionSequencer->setIntervalMs(m_settings->value("interval", DEFAULT_INTERVAL).toInt());
     QString portName = m_settings->value("portName", "").toString();
     if (!portName.isEmpty()) {
         m_serialPort->setPortName(portName);
