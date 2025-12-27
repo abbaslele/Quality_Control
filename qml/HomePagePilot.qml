@@ -40,7 +40,7 @@ Item {
         }
 
         function onStatusMessage(message) {
-            statusBar.text = message
+            statusBar.text += message + "\n"
         }
     }
 
@@ -244,7 +244,6 @@ Item {
                             from: 100
                             to: 5000
                             stepSize: 100
-                            enabled: false
                             value: sequencer.intervalMs
                             editable: true
                             onValueChanged: sequencer.intervalMs = value
@@ -570,4 +569,5 @@ Item {
             }
         }
     }
+
 }

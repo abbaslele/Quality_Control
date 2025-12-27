@@ -1,10 +1,32 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/main.qml</file>
-        <file>qml/ConnectionPanel.qml</file>
-        <file>qml/EncoderDisplay.qml</file>
-        <file>qml/ServoControlPanel.qml</file>
         <file>qml/ApplicationTheme.qml</file>
-        <file>qml/Home.qml</file>
+        <file>qml/HomePagePilot.qml</file>
+        <file>qml/Components/CustomButton.qml</file>
+        <file>qml/Components/CustomCheckBox.qml</file>
+        <file>qml/Components/CustomComboBox.qml</file>
+        <file>qml/Components/CustomDialog.qml</file>
+        <file>qml/Components/CustomRadioButton.qml</file>
+        <file>qml/Components/CustomSlider.qml</file>
+        <file>qml/Components/CustomSpinBox.qml</file>
+        <file>qml/Components/CustomTextField.qml</file>
+        <file>qml/Components/date-conversion.js</file>
+        <file>qml/Components/Icon.qml</file>
+        <file>qml/Components/IconButton.qml</file>
+        <file>qml/Components/MapView.qml</file>
+        <file>qml/Components/NotificationPopup.qml</file>
+        <file>qml/Components/Pagination.qml</file>
+        <file>qml/Components/PersianCalendar.qml</file>
+        <file>qml/Components/TipPopup.qml</file>
+        <file>qml/Pages/Backlash/Home.qml</file>
+        <file>qml/Pages/FineTune/Home.qml</file>
+        <file>qml/Pages/LoginStack/ChangePasswordBody.qml</file>
+        <file>qml/Pages/LoginStack/LoginBody.qml</file>
+        <file>qml/Pages/LoginStack/LoginButtonsManager.qml</file>
+        <file>qml/Pages/LoginStack/RecoverPasswordBody.qml</file>
+        <file>qml/Pages/LoginStack/SecurityQuestionBody.qml</file>
+        <file>qml/Pages/Login.qml</file>
+        <file>qml/Pages/ThreatHistory.qml</file>
     </qresource>
 </RCC>
