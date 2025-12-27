@@ -459,8 +459,8 @@ Page {
             spacing: 16
             Layout.fillWidth: true
             Layout.fillHeight: true
-            Layout.maximumHeight: 800
-            Layout.minimumHeight: 600
+            Layout.maximumHeight: 675
+            Layout.minimumHeight: 675
 
             Pane{
                 id: uOnlineTest_Pane
@@ -726,7 +726,7 @@ Page {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     padding: 16
-                    Layout.maximumHeight: 400
+                    Layout.maximumHeight: 350
                     Layout.minimumHeight: 350
                     background: Rectangle {
                         anchors.fill: parent
