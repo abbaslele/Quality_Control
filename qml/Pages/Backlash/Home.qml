@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 import QtQuick.Controls.Material 2.15
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
 
 
 import "../../"
@@ -16,7 +15,6 @@ Page {
 
 
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
     property StackView mStackView
 
     padding: 24

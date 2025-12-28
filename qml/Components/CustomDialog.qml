@@ -2,7 +2,6 @@ import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts
-import AppManager 1.0
 import Qt5Compat.GraphicalEffects
 
 import "../"
@@ -10,7 +9,6 @@ import "../"
 Dialog {
     id: m_Item
 
-    property AppManager mAppManager
     property ApplicationTheme mApplicationTheme: m_Item.mApplicationTheme
     property string _currentState: "AddDevice"
     property string _name: ""
@@ -49,13 +47,7 @@ Dialog {
 
     function yesButton() {
         if(_currentState === "Setting") {
-            // if(uDeviceIp_TextField.text !== "" && uDeviceName_TextField.text !== "") {
-            //     if(mAppManager.addDeviceToSQL(uDeviceIp_TextField.text, uDeviceName_TextField.text)) {
-            //
-            //     } else {
-            //         console.log("failed to add")
-            //     }
-            // }
+            appController.saveSettings()
             m_Item.close()
         }
     }
@@ -90,7 +82,7 @@ Dialog {
             uHeader_IconSource = "Settings_Icon_F_E"
             uHeader_IconColor = mApplicationTheme.mainTint3
             dialogWidth = 700
-            dialogHeight = 500
+            dialogHeight = 600
             showSettingContent_ColumnLayout = true
             uYes_CustomButtonText = "Save"
             uNo_CustomButtonText = "Cancel"
@@ -213,24 +205,58 @@ Dialog {
 
                         CustomSpinBox{
                             mApplicationTheme: m_Item.mApplicationTheme
-                            _TextLabel : "Last Pulse"
+                            _TextLabel : "End Pulse"
+                            _From: 500
+                            _To: 2300
+                            _Value: appController.endPulse
+                            on_ValueChanged: appController.endPulse = _Value
+
                         }
 
                         CustomSpinBox{
                             mApplicationTheme: m_Item.mApplicationTheme
-                            _TextLabel : "First Pulse"
+                            _TextLabel : "Start Pulse"
+                            _From: 500
+                            _To: 2300
+                            _Value: appController.startPulse
+                            on_ValueChanged: appController.startPulse = _Value
                         }
-
 
                         CustomSpinBox{
                             mApplicationTheme: m_Item.mApplicationTheme
-                            _TextLabel : "Zero Pulse"
+                            _TextLabel : "End Angle"
+                            _From: -180
+                            _To: 180
+                            _Value: appController.endAngle
+                            on_ValueChanged: appController.endAngle = _Value
                         }
 
                         CustomSpinBox{
                             mApplicationTheme: m_Item.mApplicationTheme
-                            _TextLabel : "Step Count"
-                            _to:20
+                            _TextLabel : "Start Angle"
+                            _From: -180
+                            _To: 180
+                            _Value: appController.startAngle
+                            on_ValueChanged: appController.startAngle = _Value
+                        }
+
+                        CustomSpinBox{
+                            mApplicationTheme: m_Item.mApplicationTheme
+                            _TextLabel : "Interval (ms)"
+                            _From: 100
+                            _To: 5000
+                            _Stepsize: 100
+                            _Value: sequencer.intervalMs
+                            on_ValueChanged: sequencer.intervalMs = _Value
+                        }
+
+                        CustomSpinBox{
+                            mApplicationTheme: m_Item.mApplicationTheme
+                            _TextLabel : "Steps"
+                            _From: 2
+                            _To: 50
+                            _Value: appController.steps
+                            on_ValueChanged: appController.steps = _Value
                         }
                     }
                 }

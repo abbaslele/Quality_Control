@@ -11,9 +11,10 @@ ColumnLayout{
     property bool _isBGLight: true
     property string _TextLabel : ""
     property int _Stepsize: 1
-    property int _from: 1
-    property int _to: 100000
+    property int _From: 1
+    property int _To: 100000
     property bool _Editable: true
+    property var _Value: 0
 
     Layout.fillWidth: true
     Layout.fillHeight: true
@@ -21,13 +22,15 @@ ColumnLayout{
     Layout.maximumHeight: 96
     Layout.minimumWidth: 150
 
+    signal _valueChanged()
+
     Label{
         Layout.fillWidth: true
         Layout.fillHeight: true
         text: _TextLabel
         Material.foreground: mApplicationTheme.mainTint3
         font:  mApplicationTheme.font_En_Medium_Regular
-        horizontalAlignment: Text.AlignLeft
+        horizontalAlignment: Text.AlignRight
         verticalAlignment: Text.AlignVCenter
     }
 
@@ -63,12 +66,14 @@ ColumnLayout{
             }
         }
         stepSize: _Stepsize
-        from: _from
-        to: _to
+        from: _From
+        to: _To
+        value: _Value
         font: mApplicationTheme.font_En_Small_Regular
         Material.foreground: mApplicationTheme.mainTint3
         Material.roundedScale : Material.FullScale
         editable: _Editable
+        onValueChanged: parent.on_ValueChanged()
     }
 
 

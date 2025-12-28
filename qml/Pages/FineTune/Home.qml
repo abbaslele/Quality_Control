@@ -156,11 +156,9 @@ Page {
                             uDialog_Loader.setSource("../../Components/CustomDialog.qml", {
                                                          "_currentState": "Setting",
                                                          "mApplicationTheme": m_Item.mApplicationTheme,
-                                                         "mAppManager": m_Item.mAppManager
                                                      })
 
                         }
-                        enabled: false
                     }
 
                     IconButton{
