@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
 
 import "../"
 import"../Components"
@@ -15,7 +14,6 @@ Page {
 
     property StackView mStackView
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
     property int result
 
     background: Image {
@@ -68,14 +66,12 @@ Page {
         State {name: Login.LoginStates.FirstLogin ;
             PropertyChanges {target: uLogin_Pane ; }
             PropertyChanges {target: uErrorHint_Pane ; Layout.minimumWidth:332;}
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.FirstLogin;}
 
 
 
         },
         State {name: Login.LoginStates.ChangePassword ;
             PropertyChanges {target: uLogin_Pane ; }
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.ChangePassword;}
 
 
 
@@ -85,7 +81,6 @@ Page {
 
             PropertyChanges {target: uLogin_Pane ;}
             PropertyChanges {target: uErrorHint_Pane ; Layout.minimumWidth:332;}
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.Login;}
 
 
         },
@@ -93,60 +88,22 @@ Page {
 
             PropertyChanges {target: uLogin_Pane ;}
             PropertyChanges {target: uErrorHint_Pane ; Layout.minimumWidth:332;}
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.NormalLogin;}
 
 
         },
         State {name: Login.LoginStates.SecurityQuestion ;
 
             PropertyChanges {target: uLogin_Pane ; }
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.SecurityQuestion;}
 
 
         },
         State {name: Login.LoginStates.RecoverPassword ;
             PropertyChanges {target: uLogin_Pane ; }
             PropertyChanges {target: uErrorHint_Pane ; Layout.maximumWidth:332;}
-            PropertyChanges {target: uLoginButtonsManager ; state:Login.LoginStates.RecoverPassword;}
 
         }
     ]
 
-    onStateChanged: {
-        switch(state){
-        case '0' /*Login.LoginStates.FirstLogin*/:
-            // setErrorHintText("اطلاعات موقتِ ورود را وارد کنید.",mApplicationTheme.greenTint2,mApplicationTheme.darkGreen,mApplicationTheme.greenShade)
-            uLoginBody_StackView.replace("LoginStack/LoginBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme , "isFirstLogin":true})
-            break;
-        case '1' :
-            setErrorHintText("رمز ورود را تغییر دهید. سؤال امنیتی را تعیین کنید، جواب مناسبی برای آن انتخاب کنید و همه‌ی این اطلاعات را خوب به‌ خاطر بسپارید.",
-                             mApplicationTheme.yelloTint2,mApplicationTheme.darkYellow,mApplicationTheme.yellowShade1)
-            uLoginBody_StackView.replace("LoginStack/ChangePasswordBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme})
-            //uLoginPanel_Pane.height=892
-            break;
-        case '2':
-            setErrorHintText("با اطلاعات جدید وارد شوید.",mApplicationTheme.greenTint2,mApplicationTheme.darkGreen,mApplicationTheme.greenShade)
-            uLoginBody_StackView.replace("LoginStack/LoginBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme , "isFirstLogin":false})
-            break;
-        case '3':
-            uLoginBody_StackView.replace("LoginStack/LoginBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme , "isFirstLogin":false})
-            setErrorHintText("", "transparent","transparent","transparent")
-            break;
-        case '4':
-            setErrorHintText("به سؤال امنیتی جواب دهید تا امکان بازیابی رمز عبور برای شما فراهم شود.",
-                             mApplicationTheme.yelloTint2,mApplicationTheme.darkYellow,mApplicationTheme.yellowShade1)
-            uLoginBody_StackView.replace("LoginStack/SecurityQuestionBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme})
-            break;
-        case '5':
-            setErrorHintText("رمز جدید را تعیین کنید و در حفظ و به‌خاطرسپاری آن کوشا باشید.",
-                             mApplicationTheme.yelloTint2,mApplicationTheme.darkYellow,mApplicationTheme.yellowShade1)
-            uLoginBody_StackView.replace("LoginStack/RecoverPasswordBody.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme})
-            break;
-        default:
-            console.log("Wrong State: " , state)
-            break;
-        }
-    }
 
     Pane {
         id: uLoginPanel_Pane
@@ -169,7 +126,7 @@ Page {
         ColumnLayout{
             id:uLogin_ColumnLayout
             // anchors.fill: parent
-            spacing: 96
+            spacing: 36
 
             ColumnLayout{
                 id:uLogo_RowLayout
@@ -178,12 +135,12 @@ Page {
 
                 Item {
 
-                    Layout.maximumWidth: 300
-                    Layout.minimumWidth: 300
-                    Layout.minimumHeight:300
-                    Layout.maximumHeight:300
-Layout.fillHeight: true
-Layout.fillWidth: true
+                    Layout.maximumWidth: 250
+                    Layout.minimumWidth: 250
+                    Layout.minimumHeight:250
+                    Layout.maximumHeight:250
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
                     Image {
                         id: uLogo_Icon
                         anchors.fill: parent
@@ -261,46 +218,136 @@ Layout.fillWidth: true
                     }
                 }
 
-
-
-                StackView{
-                    id:uLoginBody_StackView
-
+                CustomTextField{
+                    id:uUserName_CustomTextField
                     Layout.fillWidth: true
+                    Layout.minimumHeight: 45
+                    mApplicationTheme: uLogin_Pane.mApplicationTheme
+                    _titleIcon:"Right_Arrow_Icon_F_E"
 
-                    Layout.minimumHeight: currentItem ? currentItem.implicitHeight : 0
+                    _TitleText:"Username"
+                    Component.onCompleted: {
+                        _TextfieldText="Admin"
+                    }
 
+                    onClearButtonClicked: {
+                        console.log("username clearbutton clicked")
+                        LoginButtonsManager._isEnterButtonEnabled =false/* .uEnter_CustomButton.enabled=false*/
+                        LoginButtonsManager.setSaveButtonEnabled(false)
+                    }
 
-                    replaceEnter: Transition {
-                        PropertyAnimation { property: "opacity"; from: 0; to: 1; duration: 500 }
-                    }
-                    replaceExit: Transition {
-                        PropertyAnimation { property: "opacity"; from: 1; to: 0; duration: 500 }
-                    }
-                    pushEnter: Transition {
-                        PropertyAnimation { property: "opacity"; from: 0; to: 1; duration: 250 }
-                    }
-                    pushExit: Transition {
-                        PropertyAnimation { property: "opacity"; from: 1; to: 0; duration: 250 }
-                    }
-                    popEnter: Transition {
-                        PropertyAnimation { property: "opacity"; from: 0; to: 1; duration: 250 }
-                    }
-                    popExit: Transition {
-                        PropertyAnimation { property: "opacity"; from: 1; to: 0; duration: 250 }
+                    onTextChanged: {
+                        uUserName_CustomTextField.state="Normal"
+                        uPassword_CustomTextField.state="Normal"
+                        if(uUserName_CustomTextField && uUserName_CustomTextField._TextfieldText.length >0 && uPassword_CustomTextField && uPassword_CustomTextField._TextfieldText.length>0)
+                        {
+                            //m_Item.uEnter_CustomButton.enabled=true
+                        }
+                        else
+                        {
+                            //m_Item.uEnter_CustomButton.enabled=false
+                        }
                     }
 
                 }
 
+                CustomTextField{
+                    id:uPassword_CustomTextField
+                    Layout.fillWidth: true
+                    Layout.minimumHeight: 45
+                    mApplicationTheme: uLogin_Pane.mApplicationTheme
+                    _echoMode:TextInput.Password
+                    _titleIcon:"Right_Arrow_Icon_F_E"
+                    _TitleText:"Password"
+                    Component.onCompleted: {
+                        _TextfieldText="Admin"
+                    }
+
+                    onClearButtonClicked: {
+                        //m_Item.uEnter_CustomButton.enabled=false
+                    }
+
+                    onTextChanged: {
+                        uUserName_CustomTextField.state="Normal"
+                        uPassword_CustomTextField.state="Normal"
+                        if(uUserName_CustomTextField && uUserName_CustomTextField._TextfieldText.length >0 && uPassword_CustomTextField && uPassword_CustomTextField._TextfieldText.length>0)
+                        {
+                            //m_Item.uEnter_CustomButton.enabled=true
+                        }
+                        else
+                        {
+                            //m_Item.uEnter_CustomButton.enabled=false
+                        }
+                    }
+                }
+
+                CustomComboBox{
+                    _TitleText : 'Mode'
+                    mApplicationTheme: uLogin_Pane.mApplicationTheme
+                    _Model: ['FineTuning' , 'Backlash Test']
+
+                    on_CurrentInedxChanged: {
+                        uLogin_Pane.state = _CurrentInedx
+                    }
+                }
+
             }
 
-            LoginButtonsManager{
-                id:uLoginButtonsManager
-                mApplicationTheme: uLogin_Pane.mApplicationTheme
-                mAppManager: uLogin_Pane.mAppManager
-                mStackView: uLogin_Pane.mStackView
+
+            ColumnLayout{
+                id:uButton_ColumnLayout
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+                spacing:12
+
+                CustomButton{
+                    id:uEnter_CustomButton
+
+                    Layout.fillWidth: true
+                    Layout.minimumHeight: 45
+                    Layout.maximumHeight: 45
+                    mApplicationTheme: uLogin_Pane.mApplicationTheme
+                    _ButtonStyle: CustomButton.ButtonStyle.Primary
+                    text: "Login"
+                    //enabled: false
+                    //enabled:_isEnterButtonEnabled
+
+                    onClicked: {
+                        //برای تست
+                        if(uLogin_Pane.state === '0'){
+
+                            mStackView.push("FineTune/Home.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme,  "mStackView": uLogin_Pane.mStackView})
+
+                        }
+                        else
+                        {
+                            //Home اگر اطلاعات درست بود ورود به
+                            mStackView.push("Backlash/Home.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme,  "mStackView": uLogin_Pane.mStackView})
+
+
+                        }
+
+
+                    }
+                }
+
+                CustomButton{
+                    id:uExit_CustomButton
+
+
+
+                    Layout.fillWidth: true
+                    Layout.minimumHeight: 45
+                    Layout.maximumHeight: 45
+
+                    mApplicationTheme: uLogin_Pane.mApplicationTheme
+                    _ButtonStyle: CustomButton.ButtonStyle.Secondary
+                    text: "Exit"
+
+                    onClicked: {
+                        Qt.quit()
+                    }
+                }
             }
 
         }

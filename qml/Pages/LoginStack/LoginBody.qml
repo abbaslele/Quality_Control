@@ -21,7 +21,7 @@ ColumnLayout{
     // Layout.minimumHeight: uUserName_CustomTextField.implicitHeight +12+ uPassword_CustomTextField.implicitHeight +12+
     //                                  uRecoverPassword_Label.visible ? uRecoverPassword_Label.implicitHeight  :0  -12
     height: uUserName_CustomTextField.implicitHeight +12+ uPassword_CustomTextField.implicitHeight +12+
-                                     uRecoverPassword_Label.visible ? uRecoverPassword_Label.implicitHeight  :0  -12
+            uRecoverPassword_Label.visible ? uRecoverPassword_Label.implicitHeight  :0  -12
 
     CustomTextField{
         id:uUserName_CustomTextField
@@ -90,6 +90,11 @@ ColumnLayout{
         _TitleText : 'Mode'
         mApplicationTheme: uLoginBody_ColumnLayout.mApplicationTheme
         _Model: ['FineTuning' , 'Backlash Test']
+        onComboBoxCurrentIndexChanged: {
+
+            uLogin_Pane.state = _CurrentInedx
+            console.log(_CurrentInedx)
+        }
     }
 
     Label {

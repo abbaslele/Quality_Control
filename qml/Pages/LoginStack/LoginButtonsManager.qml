@@ -3,7 +3,6 @@ import QtQuick.Controls 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Layouts
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
 
 import "../"
 import "../../"
@@ -21,7 +20,6 @@ Pane{
     padding: 0
 
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
     property StackView mStackView
     property bool _isEnterButtonEnabled: true
 
@@ -164,9 +162,8 @@ Pane{
                 // uLogin_Pane.state=Login.LoginStates.ChangePassword
                 //uPassword_CustomTextField.state="Danger"
                 if(uLogin_Pane.state === '0'){
-                    //uLogin_Pane.state=Login.LoginStates.ChangePassword
 
-                    mStackView.push("../Backlash/Home.qml", {"mApplicationTheme": m_Item.mApplicationTheme, "mAppManager": m_Item.mAppManager, "mStackView": m_Item.mStackView})
+                    mStackView.push("../FineTune/Home.qml", {"mApplicationTheme": m_Item.mApplicationTheme,  "mStackView": m_Item.mStackView})
 
 
                     //uLogin_Pane.state=Login.LoginStates.Login
@@ -174,6 +171,9 @@ Pane{
                 else
                 {
                     //Home اگر اطلاعات درست بود ورود به
+                    mStackView.push("../Backlash/Home.qml", {"mApplicationTheme": m_Item.mApplicationTheme,  "mStackView": m_Item.mStackView})
+
+
                 }
 
                 // result =mAppManager.userLoginCheck(uUserName_CustomTextField._TextfieldText,uPassword_CustomTextField._TextfieldText)

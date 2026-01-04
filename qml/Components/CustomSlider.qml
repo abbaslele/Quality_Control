@@ -4,7 +4,6 @@ import QtQuick3D
 import QtQuick.Layouts
 import QtQuick.Shapes 1.15
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
 
 
 
@@ -17,7 +16,6 @@ Slider {
     id: m_Item
 
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
     property var _mediaPlayer
     property real sliderValue: 0
     property real changedValue: 0
@@ -213,7 +211,7 @@ Slider {
         if (userIsInteracting) {
             changedValue = value
             _mediaPlayer.position = changedValue
-            mAppManager.setElapsed(value)
+            // mAppManager.setElapsed(value)
         }
         if (value === _mediaPlayer.duration) {
             videoEnded()

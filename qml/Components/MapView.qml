@@ -3,9 +3,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 import QtCore
-import Sagheb
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
 
 
 
@@ -19,7 +17,6 @@ Item {
 
 
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
 
     property  bool isMapOnDeviceCentered: true
 
@@ -459,7 +456,6 @@ Item {
                                             deviceLat = lat
                                             deviceLong = lon
 
-                                            mAppManager.updateDevicePosition(deviceLat,deviceLong)
 
                                             mapLat=deviceLat
                                             mapLong = deviceLong

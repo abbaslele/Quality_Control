@@ -3,24 +3,18 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts
 import QtQuick.Controls.Material 2.15
 import Qt5Compat.GraphicalEffects
-import AppManager 1.0
-import Threat 1.0
 
 import "../Components/date-conversion.js" as DateConversion
 
 import "../"
 import "../Components"
 import "../Pages"
-import "../Pages/CameraControlStack"
-import "../Pages/ThreatSectionStack"
-
 
 Page {
     id:m_Item
 
 
     property ApplicationTheme mApplicationTheme
-    property AppManager mAppManager
     property StackView mTStackView
     property var filterStartDate
     property var filterEndDate
@@ -59,35 +53,35 @@ Page {
     }
 
 
-    function updateFilteredModel(currentPage ,itemsPerPage) {
+    // function updateFilteredModel(currentPage ,itemsPerPage) {
 
-        uThreatHistory_GridLayout.selectedCardIndex = -1
-        mAppManager.stop()
+    //     uThreatHistory_GridLayout.selectedCardIndex = -1
+    //     mAppManager.stop()
 
-        if(filterStartDate  && !filterEndDate){ // فقط تاریخ شروع
+    //     if(filterStartDate  && !filterEndDate){ // فقط تاریخ شروع
 
-            fromDateGregorian =  DateConversion.jalali_to_gregorian(filterStartDate.y,filterStartDate.m,filterStartDate.d)
-            toDateGregorian =  fromDateGregorian
-            qFromDate = new Date(fromDateGregorian[0], fromDateGregorian[1] - 1, fromDateGregorian[2]);
-            qToDate = new Date(toDateGregorian[0], toDateGregorian[1] - 1, toDateGregorian[2]);
+    //         fromDateGregorian =  DateConversion.jalali_to_gregorian(filterStartDate.y,filterStartDate.m,filterStartDate.d)
+    //         toDateGregorian =  fromDateGregorian
+    //         qFromDate = new Date(fromDateGregorian[0], fromDateGregorian[1] - 1, fromDateGregorian[2]);
+    //         qToDate = new Date(toDateGregorian[0], toDateGregorian[1] - 1, toDateGregorian[2]);
 
 
-            filterEndDate= filterStartDate
-            mAppManager.getThreatsByDate(qFromDate,qToDate, currentPage, itemsPerPage)
-        }
-        else if(!filterStartDate){ // بدون فیلتر تاریخ
-            mAppManager.getAllThreats(currentPage, itemsPerPage)
-        }
-        else{ // فیلتر بازه تاریخ
-            fromDateGregorian =  DateConversion.jalali_to_gregorian(filterStartDate.y,filterStartDate.m,filterStartDate.d)
-            toDateGregorian =  DateConversion.jalali_to_gregorian(filterEndDate.y,filterEndDate.m,filterEndDate.d)
-            qFromDate = new Date(fromDateGregorian[0], fromDateGregorian[1] - 1, fromDateGregorian[2]);
-            qToDate = new Date(toDateGregorian[0], toDateGregorian[1] - 1, toDateGregorian[2]);
+    //         filterEndDate= filterStartDate
+    //         mAppManager.getThreatsByDate(qFromDate,qToDate, currentPage, itemsPerPage)
+    //     }
+    //     else if(!filterStartDate){ // بدون فیلتر تاریخ
+    //         mAppManager.getAllThreats(currentPage, itemsPerPage)
+    //     }
+    //     else{ // فیلتر بازه تاریخ
+    //         fromDateGregorian =  DateConversion.jalali_to_gregorian(filterStartDate.y,filterStartDate.m,filterStartDate.d)
+    //         toDateGregorian =  DateConversion.jalali_to_gregorian(filterEndDate.y,filterEndDate.m,filterEndDate.d)
+    //         qFromDate = new Date(fromDateGregorian[0], fromDateGregorian[1] - 1, fromDateGregorian[2]);
+    //         qToDate = new Date(toDateGregorian[0], toDateGregorian[1] - 1, toDateGregorian[2]);
 
-            mAppManager.getThreatsByDate(qFromDate,qToDate, currentPage, itemsPerPage)
-        }
+    //         mAppManager.getThreatsByDate(qFromDate,qToDate, currentPage, itemsPerPage)
+    //     }
 
-    }
+    // }
 
 
     padding: 0
@@ -169,7 +163,7 @@ Page {
                     Layout.fillWidth: true
                     Layout.fillHeight: true
                     Component.onCompleted: {
-                        push("../Components/MapView.qml", {"mApplicationTheme": m_Item.mApplicationTheme , "mAppManager": m_Item.mAppManager})
+                        push("../Components/MapView.qml", {"mApplicationTheme": m_Item.mApplicationTheme })
                     }
                 }
 
@@ -314,7 +308,6 @@ Page {
                                     delegate: ThreatHistoryCard {
                                         id: uThreatCard
                                         mApplicationTheme: m_Item.mApplicationTheme
-                                        mAppManager: m_Item.mAppManager
                                         Layout.alignment: Qt.AlignLeft | Qt.AlignTop
 
 
@@ -427,7 +420,6 @@ Page {
                             id:uPagination
                             mApplicationTheme: m_Item.mApplicationTheme
                             Layout.maximumWidth: 359
-                            totalItems: mAppManager.filteredThreatsCount
                             _itemsPerPage:itemsPerPage
 
                             onCurrentPageChanged:{
