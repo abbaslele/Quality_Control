@@ -37,8 +37,10 @@ ColumnLayout {
 
     spacing:8
 
+
     signal comboBoxCurrentIndexChanged(int index)
 
+    signal _currentInedxChanged()
     RowLayout{
         id:uTitle_RowLayout
         Layout.maximumHeight: 43
@@ -131,6 +133,7 @@ ColumnLayout {
 
         onCurrentIndexChanged: {
             uMain_ColumnLayout.comboBoxCurrentIndexChanged(currentIndex)
+            _currentInedxChanged()
         }
 
         displayText: {

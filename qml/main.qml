@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
 
-import "Pages/FineTune"
+import "Pages"
 ApplicationWindow {
     id:uMainQml
 
@@ -14,10 +14,11 @@ ApplicationWindow {
 
     ApplicationTheme{id:mApplicationTheme}
 
-    Home
+    Login
     {
         id:uHome
         mApplicationTheme:mApplicationTheme
+        mStackView: mStackView
     }
 
     StackView

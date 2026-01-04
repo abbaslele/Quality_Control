@@ -141,7 +141,7 @@ Page {
                         onClicked: {
                             mStackView.pop()
                         }
-                        enabled: false
+
                     }
 
                     IconButton{
