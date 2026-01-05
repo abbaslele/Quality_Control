@@ -1,6 +1,7 @@
 #ifndef APPLICATIONCONTROLLER_H
 #define APPLICATIONCONTROLLER_H
 
+#include "src/control/backlashtester.h"
 #include <QObject>
 #include <QSettings>
 #include <QVector>
@@ -35,6 +36,7 @@ public:
     Q_INVOKABLE QObject* serialPort() const;
     Q_INVOKABLE QObject* deviceController() const;
     Q_INVOKABLE QObject* positionSequencer() const;
+    Q_INVOKABLE QObject* backlashTester() const;
 
     // Property accessors
     bool isCalibrated() const { return m_isCalibrated; }
@@ -81,6 +83,7 @@ private:
     SerialPortManager *m_serialPort;
     DeviceController *m_deviceController;
     PositionSequencer *m_positionSequencer;
+    BacklashTester *m_backlashTester;
     QSettings *m_settings;
 
     bool m_isCalibrated;

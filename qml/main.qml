@@ -2,7 +2,7 @@ import QtQuick 2.15
 import QtQuick.Controls.Material 2.15
 import QtQuick.Controls 2.15
 
-import "Pages"
+import "Pages/Backlash"
 ApplicationWindow {
     id:uMainQml
 
@@ -14,11 +14,11 @@ ApplicationWindow {
 
     ApplicationTheme{id:mApplicationTheme}
 
-    Login
+    Home
     {
         id:uHome
         mApplicationTheme:mApplicationTheme
-        mStackView: mStackView
+        // mStackView: mStackView
     }
 
     StackView

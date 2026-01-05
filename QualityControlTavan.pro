@@ -17,6 +17,7 @@ TARGET = QualityControl
 # Source files
 SOURCES += \
     main.cpp \
+    src/control/backlashtester.cpp \
     src/serial/SerialPortManager.cpp \
     src/control/DeviceController.cpp \
     src/control/PositionSequencer.cpp \
@@ -24,6 +25,7 @@ SOURCES += \
 
 # Header files
 HEADERS += \
+    src/control/backlashtester.h \
     src/serial/SerialPortManager.h \
     src/control/DeviceController.h \
     src/control/PositionSequencer.h \

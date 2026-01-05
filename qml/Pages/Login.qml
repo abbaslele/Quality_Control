@@ -316,7 +316,7 @@ Page {
                         //برای تست
                         if(uLogin_Pane.state === '0'){
 
-                            mStackView.push("FineTune/Home.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme,  "mStackView": uLogin_Pane.mStackView})
+                            mStackView.push("Backlash/Home.qml", {"mApplicationTheme": uLogin_Pane.mApplicationTheme,  "mStackView": uLogin_Pane.mStackView})
 
                         }
                         else

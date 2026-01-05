@@ -2,6 +2,7 @@
 #include "../serial/SerialPortManager.h"
 #include "../control/DeviceController.h"
 #include "../control/PositionSequencer.h"
+#include "src/control/backlashtester.h"
 #include <QDebug>
 #include <QThread>
 
@@ -33,6 +34,8 @@ void ApplicationController::initializeComponents()
 
     m_deviceController = new DeviceController(m_serialPort, this);
     m_positionSequencer = new PositionSequencer(this);
+
+    m_backlashTester = new BacklashTester(m_deviceController, this);
 }
 
 void ApplicationController::connectSignals()
@@ -54,6 +57,14 @@ void ApplicationController::connectSignals()
             this, &ApplicationController::statusMessage);
     connect(m_serialPort, &SerialPortManager::errorOccurred,
             this, &ApplicationController::statusMessage);
+
+    connect(m_backlashTester, &BacklashTester::statusMessage,
+            this, &ApplicationController::statusMessage);
+}
+
+QObject* ApplicationController::backlashTester() const
+{
+    return m_backlashTester;
 }
 
 QObject* ApplicationController::serialPort() const

@@ -8,6 +8,7 @@
 #include "src/serial/SerialPortManager.h"
 #include "src/control/DeviceController.h"
 #include "src/control/PositionSequencer.h"
+#include "src/control/BacklashTester.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,7 +18,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("TavanAfarin");
     app.setOrganizationDomain("TavanAfarin.local");
     app.setApplicationName("Quality Control");
-    app.setApplicationVersion("1.0.9");
+    app.setApplicationVersion("1.0.10");
     // app.setWindowIcon(QIcon("qrc:/Resources/Icons/QualityControl.ico"));
 
     // Register QML types
@@ -25,6 +26,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<DeviceController>("ServoControl", 1, 0, "DeviceController");
     qmlRegisterType<PositionSequencer>("ServoControl", 1, 0, "PositionSequencer");
     qmlRegisterType<ApplicationController>("ServoControl", 1, 0, "ApplicationController");
+    qmlRegisterType<BacklashTester>("ServoControl", 1, 0, "BacklashTester");
 
     // Create QML engine
     QQmlApplicationEngine engine;
