@@ -48,6 +48,7 @@ Dialog {
     function yesButton() {
         if(_currentState === "Setting") {
             appController.saveSettings()
+            console.log("Saved")
             m_Item.close()
         }
     }
@@ -209,8 +210,7 @@ Dialog {
                             _From: 500
                             _To: 2300
                             _Value: appController.endPulse
-                            on_ValueChanged: appController.endPulse = _Value
-
+                            onValueChanged: appController.endPulse = _Value
                         }
 
                         CustomSpinBox{
@@ -219,7 +219,7 @@ Dialog {
                             _From: 500
                             _To: 2300
                             _Value: appController.startPulse
-                            on_ValueChanged: appController.startPulse = _Value
+                            onValueChanged: appController.startPulse = _Value
                         }
 
                         CustomSpinBox{
@@ -228,7 +228,7 @@ Dialog {
                             _From: -180
                             _To: 180
                             _Value: appController.endAngle
-                            on_ValueChanged: appController.endAngle = _Value
+                            onValueChanged: appController.endAngle = _Value
                         }
 
                         CustomSpinBox{
@@ -237,7 +237,7 @@ Dialog {
                             _From: -180
                             _To: 180
                             _Value: appController.startAngle
-                            on_ValueChanged: appController.startAngle = _Value
+                            onValueChanged: appController.startAngle = _Value
                         }
 
                         CustomSpinBox{
@@ -247,7 +247,7 @@ Dialog {
                             _To: 5000
                             _Stepsize: 100
                             _Value: sequencer.intervalMs
-                            on_ValueChanged: sequencer.intervalMs = _Value
+                            onValueChanged: sequencer.intervalMs = _Value
                         }
 
                         CustomSpinBox{
@@ -256,7 +256,7 @@ Dialog {
                             _From: 2
                             _To: 50
                             _Value: appController.steps
-                            on_ValueChanged: appController.steps = _Value
+                            onValueChanged: appController.steps = _Value
                         }
                     }
                 }

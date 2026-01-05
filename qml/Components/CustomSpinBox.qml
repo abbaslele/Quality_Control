@@ -6,6 +6,7 @@ import QtQuick.Layouts
 import "../"
 
 ColumnLayout{
+    id: root
     property ApplicationTheme mApplicationTheme: m_Item.mApplicationTheme
 
     property bool _isBGLight: true
@@ -22,7 +23,7 @@ ColumnLayout{
     Layout.maximumHeight: 96
     Layout.minimumWidth: 150
 
-    signal _valueChanged()
+    signal valueChanged(int value)
 
     Label{
         Layout.fillWidth: true
@@ -73,8 +74,11 @@ ColumnLayout{
         Material.foreground: mApplicationTheme.mainTint3
         Material.roundedScale : Material.FullScale
         editable: _Editable
-        onValueChanged: parent.on_ValueChanged()
-    }
+        onValueChanged: {
+                    // keep internal _Value in sync, if you want two‑way binding
+                    _Value = value
+                    root.valueChanged(value)
+                }    }
 
 
 

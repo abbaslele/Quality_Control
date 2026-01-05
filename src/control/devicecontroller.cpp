@@ -23,8 +23,8 @@ bool DeviceController::sendServoCommand(int microseconds)
         return false;
     }
 
-    if (microseconds < 900 || microseconds > 2250) {
-        emit deviceError(QString("Invalid servo position: %1 (range: 900-2250)").arg(microseconds));
+    if (microseconds < 700 || microseconds > 2300) {
+        emit deviceError(QString("Invalid servo position: %1 (range: 700-2300)").arg(microseconds));
         return false;
     }
 
