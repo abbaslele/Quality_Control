@@ -6,6 +6,7 @@
 #include <QVector>
 
 class DeviceController;
+class ApplicationController;
 
 class BacklashTester : public QObject
 {
@@ -22,9 +23,10 @@ class BacklashTester : public QObject
     Q_PROPERTY(QString backlashColorAvg READ backlashColorAvg NOTIFY backlashColorAvgChanged)
     Q_PROPERTY(int forwardSampleCount READ forwardSampleCount NOTIFY forwardSampleCountChanged)
     Q_PROPERTY(int reverseSampleCount READ reverseSampleCount NOTIFY reverseSampleCountChanged)
+    Q_PROPERTY(QString currentPhaseText READ currentPhaseText NOTIFY currentPhaseTextChanged)
 
 public:
-    explicit BacklashTester(DeviceController *deviceCtrl, QObject *parent = nullptr);
+    explicit BacklashTester(DeviceController *deviceCtrl, ApplicationController *appCtrl, QObject *parent = nullptr);
 
     bool isRunning() const { return m_isRunning; }
     int countdown() const { return m_countdown; }
@@ -38,6 +40,7 @@ public:
     QString backlashColorAvg() const { return m_backlashColorAvg; }
     int forwardSampleCount() const { return m_forwardSamples.size(); }
     int reverseSampleCount() const { return m_reverseSamples.size(); }
+    QString currentPhaseText() const { return m_currentPhaseText; }
 
     Q_INVOKABLE void startTest();
     Q_INVOKABLE void stopTest();
@@ -56,8 +59,10 @@ signals:
     void backlashColorAvgChanged(QString color);
     void forwardSampleCountChanged(int count);
     void reverseSampleCountChanged(int count);
+    void currentPhaseTextChanged(QString text);
     void testCompleted();
     void statusMessage(const QString &message);
+    void backlashoutputLog(QString outputResult  );
 
 private slots:
     void onCountdownTick();
@@ -67,11 +72,15 @@ private slots:
 private:
     void startForwardPhase();
     void startReversePhase();
+    void startCalibrationPhase();
+    void startWaitingPhase();
     void calculateBacklash();
     void updateBacklashColors();
     double calculateAverage(const QVector<double> &samples) const;
+    void logEncoderReading(double angle, const QString &phase);
 
     DeviceController *m_deviceController;
+    ApplicationController *m_appController;
     QTimer *m_countdownTimer;
     QTimer *m_readTimer;
 
@@ -94,18 +103,29 @@ private:
     QString m_backlashColorMax;
     QString m_backlashColorAvg;
 
+    // Phase text
+    QString m_currentPhaseText;
+
     // Sample storage
     QVector<double> m_forwardSamples;
     QVector<double> m_reverseSamples;
 
+    // Sample counters for logging
+    int m_forwardSampleNumber;
+    int m_reverseSampleNumber;
+
     enum TestPhase {
         Idle,
         ForwardPhase,
+        CalibrationPhase,
+        WaitingPhase,
         ReversePhase
     };
     TestPhase m_currentPhase;
 
-    static constexpr int TEST_DURATION = 5; // 3 seconds per phase
+    static constexpr int FORWARD_DURATION = 5; // 5 seconds for forward phase
+    static constexpr int REVERSE_DURATION = 5; // 5 seconds for reverse phase
+    static constexpr int WAITING_DURATION = 2; // 2 seconds waiting between phases
     static constexpr int READ_INTERVAL = 100; // Read encoder every 100ms
     static constexpr double BACKLASH_THRESHOLD = 0.3; // Threshold for color change
     static constexpr double MAX_VALID_ANGLE = 2.5; // Maximum valid angle reading (degrees)

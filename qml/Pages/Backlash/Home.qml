@@ -15,6 +15,15 @@ Item {
     property var serialMgr: appController.serialPort()
     property ApplicationTheme mApplicationTheme
 
+    Connections {
+        target: backlashTester
+
+        function onBacklashoutputLog(outputResult){
+            uSystemLog_TextArea.text += outputResult +"\n"
+        }
+
+    }
+
     ColumnLayout {
         anchors.fill: parent
         anchors.margins: 20
@@ -55,134 +64,237 @@ Item {
         //     }
         // }
 
-        // Connection Panel
-        GroupBox {
+        RowLayout{
             Layout.fillWidth: true
-            title: "Serial Connection"
+            Layout.fillHeight: true
 
-            ColumnLayout {
-                anchors.fill: parent
-                spacing: 10
+            // Connection Panel
+            GroupBox {
+                Layout.fillWidth: true
+                Layout.minimumWidth: 500
 
-                RowLayout {
-                    Text { text: "COM Port:" }
+                title: "Serial Connection"
 
-                    ComboBox {
-                        id: portComboBox
-                        Layout.fillWidth: true
-                        model: serialMgr.availablePorts()
-                        onActivated: {
-                            serialMgr.portName = currentText
-                        }
-                        Component.onCompleted: {
-                            if (serialMgr.portName !== "") {
-                                currentIndex = find(serialMgr.portName)
-                            }
-                        }
-                    }
-
-                    Button {
-                        text: "🔄"
-                        onClicked: portComboBox.model = serialMgr.availablePorts()
-                    }
-                }
-
-                RowLayout {
-                    Text { text: "Baud Rate:" }
-
-                    ComboBox {
-                        id: baudComboBox
-                        Layout.fillWidth: true
-                        model: ["9600", "19200", "38400", "57600", "115200"]
-                        enabled: false
-                        currentIndex: 1
-                        onActivated: {
-                            serialMgr.baudRate = parseInt(currentText)
-                        }
-                    }
-                }
-
-                RowLayout {
+                ColumnLayout {
+                    anchors.fill: parent
                     spacing: 10
-                    Layout.fillWidth: true
 
-                    Button {
-                        text: serialMgr.isConnected ? "Disconnect" : "Connect"
-                        Layout.fillWidth: true
-                        Material.background: serialMgr.isConnected ? Material.Red : Material.Green
-                        onClicked: {
-                            if (serialMgr.isConnected) {
-                                serialMgr.closePort()
-                            } else {
-                                serialMgr.openPort()
+                    RowLayout {
+                        Text { text: "COM Port:" }
+
+                        ComboBox {
+                            id: portComboBox
+                            Layout.fillWidth: true
+                            model: serialMgr.availablePorts()
+                            onActivated: {
+                                serialMgr.portName = currentText
+                            }
+                            Component.onCompleted: {
+                                if (serialMgr.portName !== "") {
+                                    currentIndex = find(serialMgr.portName)
+                                }
                             }
                         }
-                    }
-                }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    spacing: 20
-
-                    Button {
-                        text: backlashTester.isRunning ? "⏸ Stop Test" : "▶ Start Backlash Test"
-                        Layout.fillWidth: true
-                        Layout.preferredHeight: 50
-                        enabled: serialMgr.isConnected && appController.isCalibrated
-                        Material.background: backlashTester.isRunning ? Material.Red : Material.Green
-                        font.pixelSize: 16
-                        font.bold: true
-                        onClicked: {
-                            if (backlashTester.isRunning) {
-                                backlashTester.stopTest()
-                            } else {
-                                backlashTester.startTest()
-                            }
+                        Button {
+                            text: "🔄"
+                            onClicked: portComboBox.model = serialMgr.availablePorts()
                         }
                     }
 
-                    Button {
-                        text: "🔄 Reset"
-                        Layout.preferredWidth: 120
-                        Layout.preferredHeight: 50
-                        enabled: !backlashTester.isRunning
-                        onClicked: {
-                            appController.performCalibration()
-                            backlashTester.resetValues()
-                    }
-                    }
-                }
+                    RowLayout {
+                        Text { text: "Baud Rate:" }
 
+                        ComboBox {
+                            id: baudComboBox
+                            Layout.fillWidth: true
+                            model: ["9600", "19200", "38400", "57600", "115200"]
+                            enabled: false
+                            currentIndex: 1
+                            onActivated: {
+                                serialMgr.baudRate = parseInt(currentText)
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        spacing: 10
+                        Layout.fillWidth: true
+
+                        Button {
+                            text: serialMgr.isConnected ? "Disconnect" : "Connect"
+                            Layout.fillWidth: true
+                            Material.background: serialMgr.isConnected ? Material.Red : Material.Green
+                            onClicked: {
+                                if (serialMgr.isConnected) {
+                                    serialMgr.closePort()
+                                } else {
+                                    serialMgr.openPort()
+                                }
+                            }
+                        }
+                    }
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 20
+
+                        Button {
+                            text: backlashTester.isRunning ? "⏸ Stop Test" : "▶ Start Backlash Test"
+                            Layout.fillWidth: true
+                            Layout.preferredHeight: 50
+                            enabled: serialMgr.isConnected && appController.isCalibrated
+                            Material.background: backlashTester.isRunning ? Material.Red : Material.Green
+                            font.pixelSize: 16
+                            font.bold: true
+                            onClicked: {
+                                if (backlashTester.isRunning) {
+                                    backlashTester.stopTest()
+                                } else {
+                                    backlashTester.startTest()
+                                }
+                            }
+                        }
+
+                        Button {
+                            text: "🔄 Reset"
+                            Layout.preferredWidth: 120
+                            Layout.preferredHeight: 50
+                            enabled: !backlashTester.isRunning
+                            onClicked: {
+                                appController.performCalibration()
+                                backlashTester.resetValues()
+                                uSystemLog_TextArea.text = ""
+                            }
+                        }
+                    }
+
+                }
             }
-        }
 
+            ColumnLayout{
+                Layout.fillWidth: true
 
-        // Countdown Display
-        Rectangle {
-            Layout.fillWidth: true
-            Layout.preferredHeight: 100
-            color: Material.color(Material.Grey, Material.Shade100)
-            radius: 8
-            border.width: 2
-            border.color: backlashTester.isRunning ? Material.color(Material.Blue) : Material.color(Material.Grey)
+                // Countdown Display
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 500
 
-            ColumnLayout {
-                anchors.centerIn: parent
-                spacing: 5
+                    Layout.preferredHeight: 50
+                    color: Material.color(Material.Grey, Material.Shade200)
+                    radius: 8
+                    border.width: 2
+                    border.color: Material.color(Material.Blue)
 
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: "Countdown"
-                    font.pixelSize: 16
-                    color: Material.color(Material.Grey, Material.Shade700)
+                    Text {
+                        anchors.centerIn: parent
+                        text: backlashTester.currentPhaseText
+                        font.pixelSize: 20
+                        font.bold: true
+                        color: Material.color(Material.Blue)
+                    }
                 }
 
-                Text {
-                    Layout.alignment: Qt.AlignHCenter
-                    text: backlashTester.countdown + " s"
-                    font.pixelSize: 48
-                    font.bold: true
-                    color: backlashTester.isRunning ? Material.color(Material.Blue) : "black"
+                Rectangle {
+                    Layout.fillWidth: true
+                    Layout.minimumWidth: 500
+
+                    Layout.fillHeight: true
+                    color: {
+                        switch(backlashTester.currentPhaseText){
+                        case "Idle" :
+                        case "Forward Direction Reading" :
+                            Material.color(Material.Blue, Material.Shade100); break;
+                        case  "Calibrating System":
+                            Material.color(Material.Grey, Material.Shade100); break;
+                        case "Waiting (2 seconds)" :
+                            Material.color(Material.Yellow, Material.Shade100); break;
+                        case "Reverse Direction Reading" :
+                            Material.color(Material.Red, Material.Shade100); break;
+                        case  "Test Complete" :
+                            Material.color(Material.Green, Material.Shade100); break;
+                        default :
+                            Material.color(Material.Grey, Material.Shade100); break;
+                        }
+                    }
+
+                    radius: 8
+                    border.width: 2
+                    border.color: {
+
+                        switch(backlashTester.currentPhaseText){
+                        case "Idle" :
+                        case "Forward Direction Reading" :
+                            Material.color(Material.Blue); break;
+                        case  "Calibrating System":
+                            Material.color(Material.Grey); break;
+                        case "Waiting (2 seconds)" :
+                            Material.color(Material.Yellow); break;
+                        case "Reverse Direction Reading" :
+                            Material.color(Material.Red); break;
+                        case  "Test Complete" :
+                            Material.color(Material.Green); break;
+                        default :
+                            Material.color(Material.Grey); break;
+
+                        }
+
+                        // backlashTester.isRunning ? backlashTester.currentPhaseText === "Forward Direction Reading" ? Material.color(Material.Yellow) : Material.color(Material.Blue) : Material.color(Material.Grey)
+                    }
+                    ColumnLayout {
+                        anchors.centerIn: parent
+                        spacing: 5
+
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: "Countdown"
+                            font.pixelSize: 16
+                            color: {
+                                switch(backlashTester.currentPhaseText){
+                                case "Idle" :
+                                case "Forward Direction Reading" :
+                                    Material.color(Material.Blue, Material.Shade700); break;
+                                case  "Calibrating System":
+                                    Material.color(Material.Grey, Material.Shade700); break;
+                                case "Waiting (2 seconds)" :
+                                    Material.color(Material.Yellow, Material.Shade700); break;
+                                case "Reverse Direction Reading" :
+                                    Material.color(Material.Red, Material.Shade700); break;
+                                case  "Test Complete" :
+                                    Material.color(Material.Green, Material.Shade700); break;
+                                default :
+                                    Material.color(Material.Grey, Material.Shade700); break;
+                                }
+                            }
+
+                        }
+
+                        Text {
+                            Layout.alignment: Qt.AlignHCenter
+                            text: backlashTester.countdown + " s"
+                            font.pixelSize: 48
+                            font.bold: true
+                            color: {
+
+                                switch(backlashTester.currentPhaseText){
+                                case "Idle" :
+                                case "Forward Direction Reading" :
+                                    Material.color(Material.Blue); break;
+                                case  "Calibrating System":
+                                    Material.color(Material.Grey); break;
+                                case "Waiting (2 seconds)" :
+                                    Material.color(Material.Yellow); break;
+                                case "Reverse Direction Reading" :
+                                    Material.color(Material.Red); break;
+                                case  "Test Complete" :
+                                    Material.color(Material.Green); break;
+                                default :
+                                    Material.color(Material.Grey); break;
+
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -352,7 +464,7 @@ Item {
         // Backlash Results - Two side by side
         GridLayout {
             Layout.fillWidth: true
-            columns: 2
+            columns: 3
             rowSpacing: 15
             columnSpacing: 15
 
@@ -361,13 +473,13 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 140
                 color: backlashTester.backlashColorMax === "red" ?
-                       Material.color(Material.Red, Material.Shade50) :
-                       Material.color(Material.Green, Material.Shade50)
+                           Material.color(Material.Red, Material.Shade50) :
+                           Material.color(Material.Green, Material.Shade50)
                 radius: 10
                 border.width: 3
                 border.color: backlashTester.backlashColorMax === "red" ?
-                              Material.color(Material.Red) :
-                              Material.color(Material.Green)
+                                  Material.color(Material.Red) :
+                                  Material.color(Material.Green)
 
                 ColumnLayout {
                     anchors.centerIn: parent
@@ -390,8 +502,8 @@ Item {
                             font.pixelSize: 36
                             font.bold: true
                             color: backlashTester.backlashColorMax === "red" ?
-                                   Material.color(Material.Red) :
-                                   Material.color(Material.Green)
+                                       Material.color(Material.Red) :
+                                       Material.color(Material.Green)
                         }
 
                         Rectangle {
@@ -399,8 +511,8 @@ Item {
                             height: 30
                             radius: 15
                             color: backlashTester.backlashColorMax === "red" ?
-                                   Material.color(Material.Red) :
-                                   Material.color(Material.Green)
+                                       Material.color(Material.Red) :
+                                       Material.color(Material.Green)
 
                             Text {
                                 anchors.centerIn: parent
@@ -415,12 +527,12 @@ Item {
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: backlashTester.backlashValueMax > 0.3 ?
-                              "EXCESSIVE" : "ACCEPTABLE"
+                                  "EXCESSIVE" : "ACCEPTABLE"
                         font.pixelSize: 13
                         font.bold: true
                         color: backlashTester.backlashColorMax === "red" ?
-                               Material.color(Material.Red) :
-                               Material.color(Material.Green)
+                                   Material.color(Material.Red) :
+                                   Material.color(Material.Green)
                     }
                 }
             }
@@ -430,13 +542,13 @@ Item {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 140
                 color: backlashTester.backlashColorAvg === "red" ?
-                       Material.color(Material.Red, Material.Shade50) :
-                       Material.color(Material.Green, Material.Shade50)
+                           Material.color(Material.Red, Material.Shade50) :
+                           Material.color(Material.Green, Material.Shade50)
                 radius: 10
                 border.width: 3
                 border.color: backlashTester.backlashColorAvg === "red" ?
-                              Material.color(Material.Red) :
-                              Material.color(Material.Green)
+                                  Material.color(Material.Red) :
+                                  Material.color(Material.Green)
 
                 ColumnLayout {
                     anchors.centerIn: parent
@@ -459,8 +571,8 @@ Item {
                             font.pixelSize: 36
                             font.bold: true
                             color: backlashTester.backlashColorAvg === "red" ?
-                                   Material.color(Material.Red) :
-                                   Material.color(Material.Green)
+                                       Material.color(Material.Red) :
+                                       Material.color(Material.Green)
                         }
 
                         Rectangle {
@@ -468,8 +580,8 @@ Item {
                             height: 30
                             radius: 15
                             color: backlashTester.backlashColorAvg === "red" ?
-                                   Material.color(Material.Red) :
-                                   Material.color(Material.Green)
+                                       Material.color(Material.Red) :
+                                       Material.color(Material.Green)
 
                             Text {
                                 anchors.centerIn: parent
@@ -484,59 +596,104 @@ Item {
                     Text {
                         Layout.alignment: Qt.AlignHCenter
                         text: backlashTester.backlashValueAvg > 0.3 ?
-                              "EXCESSIVE" : "ACCEPTABLE"
+                                  "EXCESSIVE" : "ACCEPTABLE"
                         font.pixelSize: 13
                         font.bold: true
                         color: backlashTester.backlashColorAvg === "red" ?
-                               Material.color(Material.Red) :
-                               Material.color(Material.Green)
+                                   Material.color(Material.Red) :
+                                   Material.color(Material.Green)
+                    }
+                }
+            }
+
+
+        }
+
+        // // Current Status
+        // GroupBox {
+        //     Layout.fillWidth: true
+        //     title: "Current Status"
+
+        //     GridLayout {
+        //         anchors.fill: parent
+        //         columns: 4
+        //         rowSpacing: 10
+        //         columnSpacing: 20
+
+        //         Text { text: "Encoder:" }
+        //         Text {
+        //             text: deviceCtrl.currentEncoderAngle.toFixed(3) + "°"
+        //             font.bold: true
+        //             color: Material.color(Material.Blue)
+        //         }
+
+        //         Text { text: "Connection:" }
+        //         Rectangle {
+        //             width: 20
+        //             height: 20
+        //             radius: 10
+        //             color: serialMgr.isConnected ? "green" : "red"
+        //         }
+
+        //         Text { text: "Calibrated:" }
+        //         Rectangle {
+        //             width: 20
+        //             height: 20
+        //             radius: 10
+        //             color: appController.isCalibrated ? "green" : "gray"
+        //         }
+
+        //         Text { text: "Test Status:" }
+        //         Text {
+        //             text: backlashTester.isRunning ? "RUNNING" : "IDLE"
+        //             font.bold: true
+        //             color: backlashTester.isRunning ? Material.color(Material.Green) : "gray"
+        //         }
+        //     }
+        // }
+
+        Pane{
+            id: uSystemLog_Pane
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            padding: 16
+            Layout.maximumHeight: 220
+            Layout.minimumHeight: 220
+            background: Rectangle {
+                anchors.fill: parent
+                color: mApplicationTheme.mainShade
+                border.width: 0
+                radius: 6
+            }
+
+            ScrollView {
+                id: scrollView
+                anchors.fill: parent
+                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
+                ScrollBar.vertical.policy: ScrollBar.AlwaysOn
+                clip: true
+
+                TextArea {
+                    id: uSystemLog_TextArea
+                    font: mApplicationTheme.font_En_2X_Small_Regular
+                    Material.foreground: mApplicationTheme.mainTint4
+                    Material.accent: 'transparent'
+                    selectByMouse: true
+                    selectByKeyboard: false
+                    readOnly: true
+                    wrapMode: TextArea.Wrap
+
+                    background: Rectangle {
+                        color: "transparent"
+                    }
+
+                    onTextChanged: {
+                        cursorPosition = length
                     }
                 }
             }
         }
 
-        // Current Status
-        GroupBox {
-            Layout.fillWidth: true
-            title: "Current Status"
-
-            GridLayout {
-                anchors.fill: parent
-                columns: 4
-                rowSpacing: 10
-                columnSpacing: 20
-
-                Text { text: "Encoder:" }
-                Text {
-                    text: deviceCtrl.currentEncoderAngle.toFixed(3) + "°"
-                    font.bold: true
-                    color: Material.color(Material.Blue)
-                }
-
-                Text { text: "Connection:" }
-                Rectangle {
-                    width: 20
-                    height: 20
-                    radius: 10
-                    color: serialMgr.isConnected ? "green" : "red"
-                }
-
-                Text { text: "Calibrated:" }
-                Rectangle {
-                    width: 20
-                    height: 20
-                    radius: 10
-                    color: appController.isCalibrated ? "green" : "gray"
-                }
-
-                Text { text: "Test Status:" }
-                Text {
-                    text: backlashTester.isRunning ? "RUNNING" : "IDLE"
-                    font.bold: true
-                    color: backlashTester.isRunning ? Material.color(Material.Green) : "gray"
-                }
-            }
-        }
 
         Item { Layout.fillHeight: true }
     }

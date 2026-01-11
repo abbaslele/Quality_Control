@@ -35,7 +35,8 @@ void ApplicationController::initializeComponents()
     m_deviceController = new DeviceController(m_serialPort, this);
     m_positionSequencer = new PositionSequencer(this);
 
-    m_backlashTester = new BacklashTester(m_deviceController, this);
+m_backlashTester = new BacklashTester(m_deviceController, this, this);
+
 }
 
 void ApplicationController::connectSignals()

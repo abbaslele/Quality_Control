@@ -28,5 +28,7 @@
         <file>qml/Pages/LoginStack/SecurityQuestionBody.qml</file>
         <file>qml/Pages/Login.qml</file>
         <file>qml/Pages/ThreatHistory.qml</file>
+        <file>qml/Pages/FineTune/FineTuneSide.qml</file>
+        <file>qml/Pages/FineTune/BacklashSide.qml</file>
     </qresource>
 </RCC>
