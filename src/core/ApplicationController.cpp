@@ -2,6 +2,7 @@
 #include "../serial/SerialPortManager.h"
 #include "../control/DeviceController.h"
 #include "../control/PositionSequencer.h"
+#include "qdatetime.h"
 #include "src/control/backlashtester.h"
 #include <QDebug>
 #include <QThread>
@@ -166,8 +167,10 @@ void ApplicationController::startTest()
     // Configure to run 4 complete cycles (forward + backward = 1 cycle)
     m_positionSequencer->setMaxLoops(4);
     m_positionSequencer->setLoopEnabled(true);  // Enable looping
+    emit statusMessage("*****************************************");
 
     emit statusMessage("Test started - Running 4 complete cycles");
+    emit statusMessage("Test Start time : " + QDateTime::currentDateTime().toString());
     m_positionSequencer->start();
 }
 
@@ -175,6 +178,8 @@ void ApplicationController::stopTest()
 {
     m_positionSequencer->stop();
     emit statusMessage("Test stopped");
+    emit statusMessage("######################################   ");
+
 }
 
 QVector<double> ApplicationController::calculateRealPositions() const
@@ -267,6 +272,7 @@ void ApplicationController::handleEncoderUpdate(double angle)
 void ApplicationController::handleSequenceComplete()
 {
     emit statusMessage("Test sequence completed");
+    emit statusMessage("_________________________________________");
     qDebug() << "Test completed with" << m_testResults.size() << "data points";
 }
 

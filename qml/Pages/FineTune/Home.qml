@@ -331,21 +331,51 @@ Page {
             }
         }
 
-        RowLayout{
+
+        TabBar {
+            id: bar
+            Layout.fillWidth: true
+            background: Rectangle {
+                id: background
+                anchors.fill: parent
+                border.width: 0
+                radius: 6
+                color: "transparent"
+            }
+            Material.accent: mApplicationTheme.greenTint1
+
+
+            TabButton {
+                text: qsTr("Fine Tune")
+                font: mApplicationTheme.font_En_Medium_Regular
+                Material.foreground: mApplicationTheme.mainTint4
+                Material.accent: mApplicationTheme.greenTint1
+            }
+            TabButton {
+                text: qsTr("Backlash")
+                font: mApplicationTheme.font_En_Medium_Regular
+                Material.foreground: mApplicationTheme.mainTint4
+                Material.accent: mApplicationTheme.greenTint1
+            }
+        }
+
+        StackLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
+            currentIndex: bar.currentIndex
             FineTuneSide{
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 mApplicationTheme : m_Item.mApplicationTheme
             }
-
-            // BacklashSide{
-            //     Layout.fillHeight: true
-            //     Layout.fillWidth: true
-            //     mApplicationTheme : m_Item.mApplicationTheme
-            // }
+            BacklashSide{
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                mApplicationTheme : m_Item.mApplicationTheme
+            }
         }
+
+
     }
 
 

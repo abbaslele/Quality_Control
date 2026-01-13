@@ -69,6 +69,9 @@ Item {
                 id: uDetail_Pane
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumHeight: 120
+                Layout.maximumHeight: 120
+
                 padding: 16
                 background: Rectangle {
                     anchors.fill: parent
@@ -80,37 +83,6 @@ Item {
                     anchors.fill: parent
                     spacing: 16
 
-
-                    RowLayout{
-                        Layout.fillWidth: true
-                        Layout.fillHeight: true
-                        spacing: 8
-                        enabled: false
-                        // rowSpacing: 8
-                        // columnSpacing: 8
-                        // columns: 3
-
-
-
-                        // CustomTextField{
-                        //     id: uP3_CustomTextField
-                        //     mApplicationTheme: m_Item.mApplicationTheme
-                        //     _TitleText: "P3"
-                        //     _isNumberOnly: true
-                        //     _TextfieldText: "N/A"
-
-                        // }
-
-                        // CustomTextField{
-                        //     id: uP4_CustomTextField
-                        //     mApplicationTheme: m_Item.mApplicationTheme
-                        //     _TitleText: "P4"
-                        //     _isNumberOnly: true
-                        //     _TextfieldText: "N/A"
-
-                        // }
-
-                    }
 
                     IconButton{
                         id: uCalibrate_IconButton
@@ -190,7 +162,7 @@ Item {
 
         }
 
-        ColumnLayout{
+        RowLayout{
             id: uData_RowLayout
             spacing: 16
             Layout.fillWidth: true
@@ -200,7 +172,6 @@ Item {
                 id: uOnlineTest_Pane
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                Layout.maximumWidth: parent.width
                 padding: 16
 
                 background: Rectangle {
@@ -354,9 +325,9 @@ Item {
                 id: uSystemLog_Pane
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+                Layout.minimumWidth: 700
+                Layout.maximumWidth: 700
                 padding: 16
-                Layout.maximumHeight: 220
-                Layout.minimumHeight: 220
                 background: Rectangle {
                     anchors.fill: parent
                     color: mApplicationTheme.mainShade
