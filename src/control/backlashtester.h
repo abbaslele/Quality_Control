@@ -123,11 +123,11 @@ private:
     };
     TestPhase m_currentPhase;
 
-    static constexpr int FORWARD_DURATION = 5; // 5 seconds for forward phase
-    static constexpr int REVERSE_DURATION = 5; // 5 seconds for reverse phase
-    static constexpr int WAITING_DURATION = 2; // 2 seconds waiting between phases
+    static constexpr int FORWARD_DURATION = 3; // 5 seconds for forward phase
+    static constexpr int REVERSE_DURATION = 3; // 5 seconds for reverse phase
+    static constexpr int WAITING_DURATION = 1; // 2 seconds waiting between phases
     static constexpr int READ_INTERVAL = 100; // Read encoder every 100ms
-    static constexpr double BACKLASH_THRESHOLD = 0.3; // Threshold for color change
+    static constexpr double BACKLASH_THRESHOLD = 0.31; // Threshold for color change
     static constexpr double MAX_VALID_ANGLE = 2.5; // Maximum valid angle reading (degrees)
 };
 

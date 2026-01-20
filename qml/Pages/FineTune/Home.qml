@@ -333,7 +333,7 @@ Page {
 
 
         TabBar {
-            id: bar
+            id: u_TabBar
             Layout.fillWidth: true
             background: Rectangle {
                 id: background
@@ -346,12 +346,14 @@ Page {
 
 
             TabButton {
+                id: uFineTune_TabButton
                 text: qsTr("Fine Tune")
                 font: mApplicationTheme.font_En_Medium_Regular
                 Material.foreground: mApplicationTheme.mainTint4
                 Material.accent: mApplicationTheme.greenTint1
             }
             TabButton {
+                id: uBacklash_TabButton
                 text: qsTr("Backlash")
                 font: mApplicationTheme.font_En_Medium_Regular
                 Material.foreground: mApplicationTheme.mainTint4
@@ -362,7 +364,7 @@ Page {
         StackLayout {
             Layout.fillHeight: true
             Layout.fillWidth: true
-            currentIndex: bar.currentIndex
+            currentIndex: u_TabBar.currentIndex
             FineTuneSide{
                 Layout.fillHeight: true
                 Layout.fillWidth: true

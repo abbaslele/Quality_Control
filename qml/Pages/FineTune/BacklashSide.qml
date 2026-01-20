@@ -130,7 +130,7 @@ Item {
             ColumnLayout {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                spacing: 20
+                spacing: 16
 
 
                 ColumnLayout{
@@ -138,138 +138,110 @@ Item {
                     Layout.fillHeight: true
                     // Countdown Display
 
-
-                    Rectangle {
+                    Pane{
                         Layout.fillWidth: true
-                        Layout.minimumWidth: 500
-
                         Layout.fillHeight: true
-                        color: {
-                            switch(backlashTester.currentPhaseText){
-                            case "Idle" :
-                            case "Forward Direction Reading" :
-                                Material.color(Material.Blue, Material.Shade100); break;
-                            case  "Calibrating System":
-                                Material.color(Material.Grey, Material.Shade100); break;
-                            case "Waiting (2 seconds)" :
-                                Material.color(Material.Yellow, Material.Shade100); break;
-                            case "Reverse Direction Reading" :
-                                Material.color(Material.Red, Material.Shade100); break;
-                            case  "Test Complete" :
-                                Material.color(Material.Green, Material.Shade100); break;
-                            default :
-                                Material.color(Material.Grey, Material.Shade100); break;
+                        background:  Rectangle {
+                            Layout.fillWidth: true
+
+                            Layout.fillHeight: true
+                            color: {
+                                switch(backlashTester.currentPhaseText){
+                                case "Idle" :
+                                    mApplicationTheme.mainShade; break;
+                                case "Forward Direction Reading" :
+                                    mApplicationTheme.secondaryColor; break;
+                                case  "Calibrating System":
+                                    mApplicationTheme.mainShade; break;
+                                case "Waiting (2 seconds)" :
+                                    mApplicationTheme.darkYellow; break;
+                                case "Reverse Direction Reading" :
+                                    mApplicationTheme.yellowShade2; break;
+                                case  "Test Complete" :
+                                    mApplicationTheme.darkGreen; break;
+                                default :
+                                    mApplicationTheme.mainShade; break;
+                                }
                             }
+                            radius: 6
                         }
 
-                        radius: 8
-                        border.width: 2
-                        border.color: {
-
-                            switch(backlashTester.currentPhaseText){
-                            case "Idle" :
-                            case "Forward Direction Reading" :
-                                Material.color(Material.Blue); break;
-                            case  "Calibrating System":
-                                Material.color(Material.Grey); break;
-                            case "Waiting (2 seconds)" :
-                                Material.color(Material.Yellow); break;
-                            case "Reverse Direction Reading" :
-                                Material.color(Material.Red); break;
-                            case  "Test Complete" :
-                                Material.color(Material.Green); break;
-                            default :
-                                Material.color(Material.Grey); break;
-
-                            }
-
-                            // backlashTester.isRunning ? backlashTester.currentPhaseText === "Forward Direction Reading" ? Material.color(Material.Yellow) : Material.color(Material.Blue) : Material.color(Material.Grey)
-                        }
                         ColumnLayout {
-                            anchors.centerIn: parent
+                            anchors.fill: parent
                             spacing: 5
+
+                            Label{
+                                text: backlashTester.currentPhaseText
+                                font: mApplicationTheme.font_En_3X_Large_Bold
+                                color: mApplicationTheme.mainTint3
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Qt.AlignVCenter
+                            }
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Countdown"
-                                font.pixelSize: 16
-                                color: {
-                                    switch(backlashTester.currentPhaseText){
-                                    case "Idle" :
-                                    case "Forward Direction Reading" :
-                                        Material.color(Material.Blue, Material.Shade700); break;
-                                    case  "Calibrating System":
-                                        Material.color(Material.Grey, Material.Shade700); break;
-                                    case "Waiting (2 seconds)" :
-                                        Material.color(Material.Yellow, Material.Shade700); break;
-                                    case "Reverse Direction Reading" :
-                                        Material.color(Material.Red, Material.Shade700); break;
-                                    case  "Test Complete" :
-                                        Material.color(Material.Green, Material.Shade700); break;
-                                    default :
-                                        Material.color(Material.Grey, Material.Shade700); break;
-                                    }
-                                }
+                                font: mApplicationTheme.font_En_Large_Regular
+                                color: mApplicationTheme.mainTint3;
 
                             }
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: backlashTester.countdown + " s"
-                                font.pixelSize: 48
-                                font.bold: true
+                                font: mApplicationTheme.font_En_3X_Large_Bold
                                 color: {
-
                                     switch(backlashTester.currentPhaseText){
                                     case "Idle" :
+                                        mApplicationTheme.mainTint3; break;
                                     case "Forward Direction Reading" :
-                                        Material.color(Material.Blue); break;
+                                        mApplicationTheme.primaryDisColor; break;
                                     case  "Calibrating System":
-                                        Material.color(Material.Grey); break;
+                                        mApplicationTheme.mainTint3; break;
                                     case "Waiting (2 seconds)" :
-                                        Material.color(Material.Yellow); break;
+                                        mApplicationTheme.mainTint3; break;
                                     case "Reverse Direction Reading" :
-                                        Material.color(Material.Red); break;
+                                        mApplicationTheme.yellow; break;
                                     case  "Test Complete" :
-                                        Material.color(Material.Green); break;
+                                        mApplicationTheme.mainTint3; break;
                                     default :
-                                        Material.color(Material.Grey); break;
+                                        mApplicationTheme.mainTint3; break;
 
                                     }
                                 }
                             }
                         }
+
                     }
                 }
 
 
                 // Results Display - Max and Average side by side
-                GridLayout {
+                RowLayout {
                     Layout.fillWidth: true
-                    columns: 2
-                    rowSpacing: 15
-                    columnSpacing: 15
+                    spacing: 16
 
                     // Forward Direction
-                    Rectangle {
+                    Pane{
+                        Layout.fillHeight: true
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        color: Material.color(Material.LightBlue, Material.Shade50)
-                        radius: 8
-                        border.width: 2
-                        border.color: Material.color(Material.Blue)
-
+                        Layout.maximumWidth: 570
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: mApplicationTheme.secondaryColor
+                            radius: 6
+                        }
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 15
                             spacing: 8
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Forward Direction"
-                                font.pixelSize: 18
-                                font.bold: true
-                                color: Material.color(Material.Blue)
+                                font: mApplicationTheme.font_En_Large_Bold
+                                color: mApplicationTheme.mainTint3
                             }
 
                             RowLayout {
@@ -282,22 +254,20 @@ Item {
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: "Maximum"
-                                        font.pixelSize: 12
-                                        color: Material.color(Material.Grey, Material.Shade700)
-                                    }
+                                        font: mApplicationTheme.font_En_3X_Small_Regular
+                                        color: mApplicationTheme.mainTint3                                    }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: backlashTester.maxAngleForward.toFixed(3) + "°"
-                                        font.pixelSize: 24
-                                        font.bold: true
-                                        color: Material.color(Material.Blue)
+                                        font: mApplicationTheme.font_En_Medium_Bold
+                                        color: mApplicationTheme.primaryDisColor
                                     }
                                 }
 
                                 Rectangle {
                                     width: 2
                                     height: 50
-                                    color: Material.color(Material.Grey, Material.Shade300)
+                                    color: mApplicationTheme.mainTint3
                                 }
 
                                 ColumnLayout {
@@ -305,15 +275,13 @@ Item {
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: "Average"
-                                        font.pixelSize: 12
-                                        color: Material.color(Material.Grey, Material.Shade700)
-                                    }
+                                        font: mApplicationTheme.font_En_3X_Small_Regular
+                                        color: mApplicationTheme.mainTint3                                    }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: backlashTester.avgAngleForward.toFixed(3) + "°"
-                                        font.pixelSize: 24
-                                        font.bold: true
-                                        color: Material.color(Material.LightBlue)
+                                        font: mApplicationTheme.font_En_Medium_Bold
+                                        color: mApplicationTheme.primaryDisColor
                                     }
                                 }
                             }
@@ -321,32 +289,31 @@ Item {
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Samples: " + backlashTester.forwardSampleCount
-                                font.pixelSize: 11
-                                color: Material.color(Material.Grey, Material.Shade600)
+                                font: mApplicationTheme.font_En_3X_Small_Regular
+                                color: mApplicationTheme.mainTint3
                             }
                         }
                     }
 
                     // Reverse Direction
-                    Rectangle {
+                    Pane{
+                        Layout.fillHeight: true
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 150
-                        color: Material.color(Material.DeepOrange, Material.Shade50)
-                        radius: 8
-                        border.width: 2
-                        border.color: Material.color(Material.DeepOrange)
-
+                        Layout.maximumWidth: 570
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: mApplicationTheme.yellowShade2
+                            radius: 6
+                        }
                         ColumnLayout {
                             anchors.fill: parent
-                            anchors.margins: 15
                             spacing: 8
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Reverse Direction"
-                                font.pixelSize: 18
-                                font.bold: true
-                                color: Material.color(Material.DeepOrange)
+                                font: mApplicationTheme.font_En_Large_Bold
+                                color: mApplicationTheme.mainTint3
                             }
 
                             RowLayout {
@@ -359,15 +326,15 @@ Item {
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: "Maximum"
-                                        font.pixelSize: 12
-                                        color: Material.color(Material.Grey, Material.Shade700)
+                                        font: mApplicationTheme.font_En_3X_Small_Regular
+                                        color: mApplicationTheme.mainTint3
+
                                     }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: Math.abs(backlashTester.maxAngleReverse).toFixed(3) + "°"
-                                        font.pixelSize: 24
-                                        font.bold: true
-                                        color: Material.color(Material.DeepOrange)
+                                        font: mApplicationTheme.font_En_Medium_Bold
+                                        color: mApplicationTheme.yellow
                                     }
                                 }
 
@@ -382,15 +349,14 @@ Item {
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: "Average"
-                                        font.pixelSize: 12
-                                        color: Material.color(Material.Grey, Material.Shade700)
+                                        font: mApplicationTheme.font_En_3X_Small_Regular
+                                        color: mApplicationTheme.mainTint3
                                     }
                                     Text {
                                         Layout.alignment: Qt.AlignHCenter
                                         text: Math.abs(backlashTester.avgAngleReverse).toFixed(3) + "°"
-                                        font.pixelSize: 24
-                                        font.bold: true
-                                        color: Material.color(Material.Orange)
+                                        font: mApplicationTheme.font_En_Medium_Bold
+                                        color: mApplicationTheme.yellow
                                     }
                                 }
                             }
@@ -398,43 +364,41 @@ Item {
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Samples: " + backlashTester.reverseSampleCount
-                                font.pixelSize: 11
-                                color: Material.color(Material.Grey, Material.Shade600)
+                                font: mApplicationTheme.font_En_3X_Small_Regular
+                                color: mApplicationTheme.mainTint3
                             }
                         }
                     }
                 }
 
                 // Backlash Results - Two side by side
-                GridLayout {
+                RowLayout {
                     Layout.fillWidth: true
-                    columns: 3
-                    rowSpacing: 15
-                    columnSpacing: 15
+                    spacing: 16
 
                     // Maximum Backlash
-                    Rectangle {
+                    Pane{
+                        Layout.fillHeight: true
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 140
-                        color: backlashTester.backlashColorMax === "red" ?
-                                   Material.color(Material.Red, Material.Shade50) :
-                                   Material.color(Material.Green, Material.Shade50)
-                        radius: 10
-                        border.width: 3
-                        border.color: backlashTester.backlashColorMax === "red" ?
-                                          Material.color(Material.Red) :
-                                          Material.color(Material.Green)
+                        Layout.maximumWidth: 570
 
+                        background:Rectangle {
+                            anchors.fill: parent
+                            color: backlashTester.backlashColorMax === "red" ?
+                                       mApplicationTheme.darkRed1 :
+                                       mApplicationTheme.darkGreen
+                            radius: 6
+
+                        }
                         ColumnLayout {
-                            anchors.centerIn: parent
-                            spacing: 10
+                            anchors.fill: parent
+                            spacing: 8
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Maximum Backlash"
-                                font.pixelSize: 16
-                                font.bold: true
-                                color: Material.color(Material.Grey, Material.Shade800)
+                                font: mApplicationTheme.font_En_Large_Bold
+                                color: mApplicationTheme.mainTint3
                             }
 
                             RowLayout {
@@ -443,11 +407,10 @@ Item {
 
                                 Text {
                                     text: backlashTester.backlashValueMax.toFixed(3) + "°"
-                                    font.pixelSize: 36
-                                    font.bold: true
+                                    font: mApplicationTheme.font_En_3X_Large_Bold
                                     color: backlashTester.backlashColorMax === "red" ?
-                                               Material.color(Material.Red) :
-                                               Material.color(Material.Green)
+                                               mApplicationTheme.sharpRed :
+                                               mApplicationTheme.green
                                 }
 
                                 Rectangle {
@@ -455,15 +418,17 @@ Item {
                                     height: 30
                                     radius: 15
                                     color: backlashTester.backlashColorMax === "red" ?
-                                               Material.color(Material.Red) :
-                                               Material.color(Material.Green)
+                                               mApplicationTheme.sharpRed :
+                                               mApplicationTheme.green
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: backlashTester.backlashValueMax > 0.3 ? "✗" : "✓"
                                         font.pixelSize: 20
                                         font.bold: true
-                                        color: "white"
+                                        color: backlashTester.backlashColorAvg === "red" ?
+                                                   mApplicationTheme.darkRed1 :
+                                                   mApplicationTheme.darkGreen
                                     }
                                 }
                             }
@@ -472,38 +437,37 @@ Item {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: backlashTester.backlashValueMax > 0.3 ?
                                           "EXCESSIVE" : "ACCEPTABLE"
-                                font.pixelSize: 13
-                                font.bold: true
-                                color: backlashTester.backlashColorMax === "red" ?
-                                           Material.color(Material.Red) :
-                                           Material.color(Material.Green)
+                                font: mApplicationTheme.font_En_2X_Small_Bold
+                                color: backlashTester.backlashColorAvg === "red" ?
+                                           mApplicationTheme.sharpRed :
+                                           mApplicationTheme.green
                             }
                         }
                     }
 
                     // Average Backlash
-                    Rectangle {
+                    Pane{
+                        Layout.fillHeight: true
                         Layout.fillWidth: true
-                        Layout.preferredHeight: 140
-                        color: backlashTester.backlashColorAvg === "red" ?
-                                   Material.color(Material.Red, Material.Shade50) :
-                                   Material.color(Material.Green, Material.Shade50)
-                        radius: 10
-                        border.width: 3
-                        border.color: backlashTester.backlashColorAvg === "red" ?
-                                          Material.color(Material.Red) :
-                                          Material.color(Material.Green)
+                        Layout.maximumWidth: 570
+                        background: Rectangle {
+                            anchors.fill: parent
+                            color: backlashTester.backlashColorAvg === "red" ?
+                                       mApplicationTheme.darkRed1 :
+                                       mApplicationTheme.darkGreen
+                            radius: 6
 
+                        }
                         ColumnLayout {
-                            anchors.centerIn: parent
-                            spacing: 10
+                            anchors.fill: parent
+                            spacing: 8
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: "Average Backlash"
-                                font.pixelSize: 16
-                                font.bold: true
-                                color: Material.color(Material.Grey, Material.Shade800)
+                                font: mApplicationTheme.font_En_Large_Bold
+                                color: mApplicationTheme.mainTint3
+
                             }
 
                             RowLayout {
@@ -512,11 +476,10 @@ Item {
 
                                 Text {
                                     text: backlashTester.backlashValueAvg.toFixed(3) + "°"
-                                    font.pixelSize: 36
-                                    font.bold: true
+                                    font: mApplicationTheme.font_En_3X_Large_Bold
                                     color: backlashTester.backlashColorAvg === "red" ?
-                                               Material.color(Material.Red) :
-                                               Material.color(Material.Green)
+                                               mApplicationTheme.sharpRed :
+                                               mApplicationTheme.green
                                 }
 
                                 Rectangle {
@@ -524,15 +487,17 @@ Item {
                                     height: 30
                                     radius: 15
                                     color: backlashTester.backlashColorAvg === "red" ?
-                                               Material.color(Material.Red) :
-                                               Material.color(Material.Green)
+                                               mApplicationTheme.sharpRed :
+                                               mApplicationTheme.green
 
                                     Text {
                                         anchors.centerIn: parent
                                         text: backlashTester.backlashValueAvg > 0.3 ? "✗" : "✓"
                                         font.pixelSize: 20
                                         font.bold: true
-                                        color: "white"
+                                        color: backlashTester.backlashColorAvg === "red" ?
+                                                   mApplicationTheme.darkRed1 :
+                                                   mApplicationTheme.darkGreen
                                     }
                                 }
                             }
@@ -541,11 +506,10 @@ Item {
                                 Layout.alignment: Qt.AlignHCenter
                                 text: backlashTester.backlashValueAvg > 0.3 ?
                                           "EXCESSIVE" : "ACCEPTABLE"
-                                font.pixelSize: 13
-                                font.bold: true
+                                font: mApplicationTheme.font_En_2X_Small_Bold
                                 color: backlashTester.backlashColorAvg === "red" ?
-                                           Material.color(Material.Red) :
-                                           Material.color(Material.Green)
+                                           mApplicationTheme.sharpRed :
+                                           mApplicationTheme.green
                             }
                         }
                     }
@@ -553,7 +517,6 @@ Item {
 
                 }
 
-                Item { Layout.fillHeight: true }
             }
 
 

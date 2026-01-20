@@ -49,6 +49,15 @@ Item {
 
         function onStatusMessage(message) {
             uSystemLog_TextArea.text += message + "\n"
+            // if(message === "*****************************************"){
+            //     u_TabBar.enabled = false
+            // }else if(message === "######################################   "){
+            //     u_TabBar.enabled = true
+            // }else if("_________________________________________"){
+            //     u_TabBar.enabled = true
+            // }else{
+            //     u_TabBar.enabled = true
+            // }
         }
     }
 
