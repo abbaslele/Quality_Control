@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
     app.setOrganizationName("TavanAfarin");
     app.setOrganizationDomain("TavanAfarin.local");
     app.setApplicationName("Quality Control");
-    app.setApplicationVersion("1.0.13");
+    app.setApplicationVersion("1.0.14");
     // app.setWindowIcon(QIcon("qrc:/Resources/Icons/QualityControl.ico"));
 
     // Register QML types
